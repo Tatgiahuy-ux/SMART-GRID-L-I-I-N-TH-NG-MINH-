@@ -38,11 +38,11 @@ gatherUsageStats = false
 [theme]
 base = "light"
 
-# Màu nhấn: xanh dương kỹ thuật, đủ đậm để chữ trắng trên nút đọc được (WCAG AA).
-primaryColor = "#1D4ED8"
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F5F7FA"
-textColor = "#1F2933"
+# Màu nhấn nâu cam trên nền giấy sáng.
+primaryColor = "#B45309"
+backgroundColor = "#FBFAF7"
+secondaryBackgroundColor = "#F1EEE7"
+textColor = "#1C1917"
 linkColor = "#1D4ED8"
 borderColor = "#D5DBE3"
 
@@ -61,7 +61,7 @@ showSidebarBorder = true
 # Kiểu chữ: một font sans duy nhất, tiêu đề vừa phải (không tiêu đề khổng lồ).
 font = "sans-serif"
 headingFont = "sans-serif"
-baseFontSize = 15
+baseFontSize = 17
 baseFontWeight = 400
 headingFontSizes = ["26px", "20px", "18px", "16px", "15px", "13px"]
 headingFontWeights = [700, 600, 600, 600, 600, 600]

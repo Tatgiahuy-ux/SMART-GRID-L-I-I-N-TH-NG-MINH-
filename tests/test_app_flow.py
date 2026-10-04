@@ -1,7 +1,11 @@
+from pathlib import Path
+import re
+
 from streamlit.testing.v1 import AppTest
 
 
 SAMPLE_DATASET = "sample_energy.csv – 8 giờ (dữ liệu minh họa nhỏ)"
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_app_flow():
@@ -10,6 +14,10 @@ def test_app_flow():
 
     at.button(key="t2_predict").click().run()
     assert at.session_state["prediction"] is not None
+
+    at.button(key="t2_write").click().run()
+    assert len(at.session_state["chain"].blocks) == 1
+    assert any("lớn hơn 0 kWh" in warning.value for warning in at.warning)
 
     at.number_input(key="t2_actual").set_value(5.5).run()
     at.button(key="t2_write").click().run()
@@ -49,6 +57,19 @@ def test_app_flow():
     assert not at.exception
 
 
+def test_no_emoji_in_source():
+    source = (ROOT / "app.py").read_text(encoding="utf-8")
+    emoji = re.compile(r"[\U0001F300-\U0001FAFF\u2600-\u27BF\u25B6\u21A9\uFE0F\u200D]")
+    assert not emoji.search(source)
+
+
+def test_upload_limit_stays_configured():
+    config = (ROOT / ".streamlit" / "config.toml").read_text(encoding="utf-8")
+    assert "maxUploadSize = 5" in config
+
+
 if __name__ == "__main__":
     test_app_flow()
-    print("1 passed")
+    test_no_emoji_in_source()
+    test_upload_limit_stays_configured()
+    print("3 passed")
