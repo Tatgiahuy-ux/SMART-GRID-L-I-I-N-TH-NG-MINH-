@@ -26,3 +26,40 @@ showErrorDetails = "none"
 [browser]
 # Không gửi thống kê sử dụng ra ngoài.
 gatherUsageStats = false
+
+[theme]
+# Dark operations dashboard: neutral navy surfaces with an energy-green action color.
+base = "dark"
+primaryColor = "#22C55E"
+backgroundColor = "#0F172A"
+secondaryBackgroundColor = "#182235"
+textColor = "#F8FAFC"
+linkColor = "#86EFAC"
+borderColor = "#475569"
+font = "sans-serif"
+headingFont = "sans-serif"
+baseRadius = "medium"
+buttonRadius = "medium"
+showWidgetBorder = true
+showSidebarBorder = true
+greenColor = "#22C55E"
+greenBackgroundColor = "#143522"
+greenTextColor = "#86EFAC"
+redColor = "#F87171"
+redBackgroundColor = "#3A1D29"
+redTextColor = "#FCA5A5"
+orangeColor = "#F59E0B"
+orangeBackgroundColor = "#3A2A12"
+orangeTextColor = "#FCD34D"
+blueColor = "#60A5FA"
+grayColor = "#94A3B8"
+chartCategoricalColors = ["#22C55E", "#60A5FA", "#F59E0B", "#A78BFA", "#F87171"]
+dataframeHeaderBackgroundColor = "#202B40"
+dataframeHeaderTextColor = "#F8FAFC"
+
+[theme.sidebar]
+backgroundColor = "#111C31"
+secondaryBackgroundColor = "#182235"
+textColor = "#F8FAFC"
+borderColor = "#334155"
+primaryColor = "#22C55E"

@@ -43,6 +43,141 @@ DATASETS = {
 DEFAULT_CONSUMER_ID = "METER_001"
 
 
+def inject_styles() -> None:
+    """Visual layer only: keep the Streamlit dashboard readable and scannable."""
+    st.markdown(
+        """
+        <style>
+        :root {
+            --sg-bg: #0f172a;
+            --sg-surface: #182235;
+            --sg-surface-soft: #202b40;
+            --sg-border: rgba(148, 163, 184, .22);
+            --sg-text: #f8fafc;
+            --sg-muted: #94a3b8;
+            --sg-accent: #22c55e;
+            --sg-accent-soft: rgba(34, 197, 94, .14);
+            --sg-danger: #f87171;
+        }
+
+        [data-testid="stAppViewContainer"] {
+            background:
+                radial-gradient(circle at 88% 0%, rgba(34, 197, 94, .09), transparent 28rem),
+                var(--sg-bg);
+        }
+        [data-testid="stHeader"] { background: transparent; }
+        [data-testid="stSidebar"] {
+            background: #111c31;
+            border-right: 1px solid var(--sg-border);
+        }
+        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+        [data-testid="stSidebar"] label { color: #cbd5e1; }
+        .block-container { max-width: 1480px; padding-top: 2.4rem; padding-bottom: 3rem; }
+
+        .sg-hero {
+            position: relative;
+            overflow: hidden;
+            padding: 1.5rem 1.7rem;
+            margin: 0 0 1.25rem;
+            border: 1px solid var(--sg-border);
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(30, 41, 59, .96), rgba(24, 34, 53, .82));
+            box-shadow: 0 18px 45px rgba(2, 6, 23, .22);
+        }
+        .sg-hero::after {
+            content: "";
+            position: absolute;
+            width: 17rem;
+            height: 17rem;
+            right: -6rem;
+            top: -9rem;
+            border-radius: 50%;
+            background: rgba(34, 197, 94, .12);
+            filter: blur(8px);
+        }
+        .sg-eyebrow, .sg-meta, .sg-sidebar-kicker {
+            color: var(--sg-muted);
+            font-size: .73rem;
+            font-weight: 700;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+        }
+        .sg-eyebrow { display: flex; align-items: center; gap: .5rem; }
+        .sg-dot {
+            display: inline-block;
+            width: .5rem;
+            height: .5rem;
+            border-radius: 50%;
+            background: var(--sg-accent);
+            box-shadow: 0 0 0 .25rem var(--sg-accent-soft);
+        }
+        .sg-hero h1 {
+            position: relative;
+            z-index: 1;
+            margin: .6rem 0 .35rem;
+            color: var(--sg-text);
+            font-size: clamp(2rem, 4vw, 3.35rem);
+            letter-spacing: -.045em;
+            line-height: 1.02;
+        }
+        .sg-hero h1 span { color: var(--sg-accent); }
+        .sg-hero p {
+            position: relative;
+            z-index: 1;
+            max-width: 48rem;
+            margin: 0;
+            color: #cbd5e1;
+            font-size: .98rem;
+            line-height: 1.65;
+        }
+        .sg-meta { position: relative; z-index: 1; display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1.1rem; }
+        .sg-meta span { padding: .38rem .62rem; border: 1px solid var(--sg-border); border-radius: 999px; background: rgba(15, 23, 42, .45); letter-spacing: .04em; }
+
+        [data-testid="stMetric"] {
+            min-height: 7.2rem;
+            padding: 1rem 1.05rem;
+            border: 1px solid var(--sg-border);
+            border-radius: 14px;
+            background: rgba(24, 34, 53, .78);
+        }
+        [data-testid="stMetricLabel"] { color: var(--sg-muted); }
+        [data-testid="stMetricValue"] { color: var(--sg-text); }
+        [data-testid="stMetricDelta"] { color: var(--sg-accent); }
+
+        [data-testid="stTabs"] button { color: var(--sg-muted); font-weight: 650; }
+        [data-testid="stTabs"] button[aria-selected="true"] { color: var(--sg-accent); }
+        [data-testid="stTabs"] [data-baseweb="tab-highlight"] { background: var(--sg-accent); }
+        [data-testid="stDataFrame"] { border: 1px solid var(--sg-border); border-radius: 12px; overflow: hidden; }
+        [data-testid="stExpander"] { border-color: var(--sg-border); border-radius: 12px; background: rgba(24, 34, 53, .42); }
+        [data-testid="stDownloadButton"] button, [data-testid="stButton"] button { border-radius: 9px; }
+        code { color: #86efac; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_header() -> None:
+    st.markdown(
+        """
+        <section class="sg-hero" aria-label="Smart Grid Monitor">
+            <div class="sg-eyebrow"><span class="sg-dot"></span> Smart city / operations lab</div>
+            <h1>Smart Grid <span>Monitor</span></h1>
+            <p>Giám sát phụ tải điện bằng Machine Learning và kiểm chứng dữ liệu bằng Blockchain — một dashboard demo cho Nhóm 17.</p>
+            <div class="sg-meta">
+                <span>ML forecasting</span><span>SHA-256 integrity</span><span>Proof of Work</span>
+            </div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_section_heading(title: str, description: str, icon: str) -> None:
+    st.subheader(title, icon=icon)
+    st.caption(description)
+
+
 # --------------------------------------------------------------------------- #
 # Nạp dữ liệu mẫu (dữ liệu người dùng tải lên do security.py kiểm tra)
 # --------------------------------------------------------------------------- #
@@ -56,43 +191,66 @@ def load_sample_data(path: str) -> pd.DataFrame:
 # Tab 1 – Tổng quan & ML
 # --------------------------------------------------------------------------- #
 def render_overview(data: pd.DataFrame, forecast, horizon: int) -> None:
-    st.subheader("Dữ liệu tiêu thụ điện")
-    st.line_chart(data.set_index("timestamp")["consumption_kwh"])
-
     latest = float(data["consumption_kwh"].iloc[-1])
     average = float(data["consumption_kwh"].mean())
     next_value = forecast.predictions[0]
-    left, middle, right = st.columns(3)
-    left.metric("Bản ghi gần nhất", f"{latest:.2f} kWh")
-    middle.metric("Trung bình dữ liệu", f"{average:.2f} kWh")
-    right.metric("Dự đoán giờ kế tiếp", f"{next_value:.2f} kWh")
 
-    st.subheader(f"Dự đoán {horizon} giờ tiếp theo · {forecast.model_name}")
-    if forecast.future_timestamps:
-        forecast_frame = pd.DataFrame(
-            {"consumption_kwh": forecast.predictions},
-            index=pd.to_datetime(pd.Series(forecast.future_timestamps)),
-        )
-        st.line_chart(forecast_frame)
-        st.dataframe(
-            pd.DataFrame(
-                {
-                    "thời điểm": forecast.future_timestamps,
-                    "dự đoán (kWh)": [round(value, 2) for value in forecast.predictions],
-                }
-            ),
-            width="stretch",
-            hide_index=True,
-        )
-    else:
-        st.write([round(value, 2) for value in forecast.predictions])
+    render_section_heading(
+        "Tín hiệu phụ tải điện",
+        f"{len(data):,} bản ghi theo giờ · mô hình đang dùng: {forecast.model_name}",
+        ":material/electric_bolt:",
+    )
+    metric_columns = st.columns(4, border=True)
+    metric_columns[0].metric("Bản ghi gần nhất", f"{latest:.2f} kWh")
+    metric_columns[1].metric("Trung bình dữ liệu", f"{average:.2f} kWh")
+    metric_columns[2].metric("Dự đoán giờ kế tiếp", f"{next_value:.2f} kWh")
+    metric_columns[3].metric("MAE (kWh)", _format_metric(forecast.mae))
 
-    st.subheader("Chất lượng mô hình")
-    metric_columns = st.columns(4)
-    metric_columns[0].metric("MAE (kWh)", _format_metric(forecast.mae))
-    metric_columns[1].metric("RMSE (kWh)", _format_metric(forecast.rmse))
-    metric_columns[2].metric("R²", _format_metric(forecast.r2, digits=4))
-    metric_columns[3].metric("Số bản ghi", f"{len(data)}")
+    chart_col, forecast_col = st.columns([1.6, 1], gap="large")
+    with chart_col:
+        with st.container(border=True):
+            st.markdown("**Lịch sử tiêu thụ**")
+            st.line_chart(
+                data.set_index("timestamp")["consumption_kwh"],
+                height=320,
+                alt="Biểu đồ lịch sử tiêu thụ điện theo giờ",
+            )
+
+    with forecast_col:
+        with st.container(border=True):
+            st.markdown(f"**Dự báo {horizon} giờ tiếp theo**")
+            if forecast.future_timestamps:
+                forecast_frame = pd.DataFrame(
+                    {"consumption_kwh": forecast.predictions},
+                    index=pd.to_datetime(pd.Series(forecast.future_timestamps)),
+                )
+                st.line_chart(
+                    forecast_frame,
+                    height=150,
+                    alt="Biểu đồ dự báo tiêu thụ điện",
+                )
+                st.dataframe(
+                    pd.DataFrame(
+                        {
+                            "thời điểm": forecast.future_timestamps,
+                            "dự đoán (kWh)": [round(value, 2) for value in forecast.predictions],
+                        }
+                    ),
+                    width="stretch",
+                    hide_index=True,
+                    height=230,
+                    alt="Bảng dự báo tiêu thụ điện",
+                )
+            else:
+                st.write([round(value, 2) for value in forecast.predictions])
+
+    with st.container(border=True):
+        st.markdown("**Chất lượng mô hình**")
+        quality = st.columns(3)
+        quality[0].metric("RMSE (kWh)", _format_metric(forecast.rmse))
+        quality[1].metric("R²", _format_metric(forecast.r2, digits=4))
+        quality[2].metric("Số bản ghi", f"{len(data):,}")
+
     st.caption(f"Nguồn chỉ số: {forecast.metrics_source}")
     if forecast.note:
         st.caption(forecast.note)
@@ -103,25 +261,28 @@ def render_overview(data: pd.DataFrame, forecast, horizon: int) -> None:
         )
 
     if forecast.fitted is not None and len(forecast.fitted) == len(data):
-        st.write("**Thực tế và giá trị mô hình khớp trên dữ liệu đầu vào**")
-        st.line_chart(
-            pd.DataFrame(
-                {
-                    "Thực tế": data["consumption_kwh"].to_numpy(),
-                    "Mô hình": forecast.fitted,
-                },
-                index=data["timestamp"],
+        with st.expander("Đối chiếu giá trị thực tế và mô hình", icon=":material/compare_arrows:"):
+            st.line_chart(
+                pd.DataFrame(
+                    {
+                        "Thực tế": data["consumption_kwh"].to_numpy(),
+                        "Mô hình": forecast.fitted,
+                    },
+                    index=data["timestamp"],
+                ),
+                height=280,
+                alt="So sánh giá trị tiêu thụ thực tế và giá trị mô hình",
             )
-        )
 
     saved = load_saved_metrics()
     if saved:
-        st.caption(
-            "ml/metrics.json · "
-            f"{saved.get('n_train')} bản ghi huấn luyện / {saved.get('n_test')} bản ghi kiểm tra · "
-            f"MAE baseline tuyến tính cùng tập test: {saved.get('baseline_linear_mae')} · "
-            f"huấn luyện lúc {saved.get('trained_at')}"
-        )
+        with st.expander("Chi tiết huấn luyện", icon=":material/model_training:"):
+            st.caption(
+                "ml/metrics.json · "
+                f"{saved.get('n_train')} bản ghi huấn luyện / {saved.get('n_test')} bản ghi kiểm tra · "
+                f"MAE baseline tuyến tính cùng tập test: {saved.get('baseline_linear_mae')} · "
+                f"huấn luyện lúc {saved.get('trained_at')}"
+            )
 
 
 def _format_metric(value: float | None, digits: int = 2) -> str:
@@ -144,13 +305,17 @@ def build_chain(data: pd.DataFrame) -> IntegrityChain:
 
 
 def render_integrity(data: pd.DataFrame, tamper_demo: bool) -> None:
-    st.subheader("Kiểm tra tính toàn vẹn dữ liệu bằng chuỗi hash")
+    render_section_heading(
+        "Tính toàn vẹn dữ liệu",
+        "SHA-256 tạo dấu vết bất biến cho từng bản ghi và phát hiện thay đổi trái phép.",
+        ":material/fingerprint:",
+    )
     chain = build_chain(data)
     if tamper_demo and chain.blocks:
         chain.tamper_block(0, "consumption_kwh", 9999.0)
 
     is_valid = chain.is_valid()
-    status_left, status_right = st.columns(2)
+    status_left, status_right = st.columns(2, border=True)
     status_left.metric("Số block", len(chain.blocks))
     status_right.metric("Trạng thái", "HỢP LỆ" if is_valid else "ĐÃ BỊ SỬA")
 
@@ -162,11 +327,19 @@ def render_integrity(data: pd.DataFrame, tamper_demo: bool) -> None:
         )
 
     if chain.blocks:
-        st.write("**Hash của block cuối**")
-        st.code(chain.blocks[-1].hash)
-    st.dataframe(chain.to_frame(), width="stretch", hide_index=True)
+        with st.container(border=True):
+            st.markdown("**Hash của block cuối**")
+            st.code(chain.blocks[-1].hash)
+    with st.container(border=True):
+        st.dataframe(
+            chain.to_frame(),
+            width="stretch",
+            hide_index=True,
+            height=440,
+            alt="Bảng các block trong chuỗi hash",
+        )
     st.caption(
-        "Lưu ý: chuỗi hash chỉ phát hiện sửa đổi. Nếu kẻ tấn công đào lại từ block bị sửa, "
+        "Chuỗi hash chỉ phát hiện sửa đổi. Nếu kẻ tấn công đào lại từ block bị sửa, "
         "cần đến luật đồng thuận ở tab **Đồng thuận PoW**."
     )
 
@@ -230,7 +403,11 @@ def render_consensus(
     forged_value: float,
     extra_blocks: int,
 ) -> None:
-    st.subheader("Đào khối và kiểm tra bằng luật đồng thuận")
+    render_section_heading(
+        "Proof of Work và đồng thuận",
+        "Đào block, kiểm tra nonce và chọn chuỗi hợp lệ có tổng công lớn nhất.",
+        ":material/account_tree:",
+    )
     st.caption(
         "Mỗi block lưu một bản ghi điện năng gồm **số thực tế** và **số mô hình ML dự đoán**; "
         "block chỉ được chấp nhận khi hash bắt đầu bằng chuỗi số 0 theo độ khó đã chọn."
@@ -242,7 +419,7 @@ def render_consensus(
         chain.tamper_block(1, "actual_usage_kwh", forged_value)
 
     summary = chain.summary()
-    columns = st.columns(5)
+    columns = st.columns(5, border=True)
     columns[0].metric("Số block", summary["blocks"])
     columns[1].metric("Độ khó", summary["difficulty"])
     columns[2].metric("Tổng nonce", f"{summary['total_nonce']:,}")
@@ -254,9 +431,15 @@ def render_consensus(
     else:
         st.error(f"Chuỗi KHÔNG hợp lệ: {summary['error']}")
 
-    st.dataframe(chain.to_frame(), width="stretch", hide_index=True)
+    with st.container(border=True):
+        st.dataframe(
+            chain.to_frame(),
+            width="stretch",
+            hide_index=True,
+            height=360,
+            alt="Bảng block Proof of Work",
+        )
 
-    st.divider()
     st.markdown("#### Luật đồng thuận: chuỗi nặng nhất thắng")
     st.write(
         "Kịch bản: kẻ tấn công sửa số điện tiêu thụ của một block rồi **đào lại** block đó "
@@ -298,7 +481,12 @@ def render_consensus(
             },
         ]
     )
-    st.dataframe(comparison, width="stretch", hide_index=True)
+    st.dataframe(
+        comparison,
+        width="stretch",
+        hide_index=True,
+        alt="So sánh chuỗi trung thực và chuỗi tấn công",
+    )
 
     if winner is None:
         st.error(reason)
@@ -319,21 +507,23 @@ def render_consensus(
 # Giao diện chính
 # --------------------------------------------------------------------------- #
 def render_guide() -> None:
-    st.subheader("Kịch bản thuyết trình")
-    st.markdown(
-        """
-        1. **Tổng quan & ML**: chiếu dữ liệu 720 giờ, chọn mô hình *RandomForest* và số giờ dự đoán,
-           đọc các chỉ số MAE / RMSE / R² trên tập kiểm tra 20%.
-        2. So sánh với **Baseline xu hướng tuyến tính** để thấy mô hình ML tốt hơn ở đâu.
-        3. **Blockchain / Hash**: mỗi bản ghi được liên kết bằng SHA-256; bật *Mô phỏng dữ liệu bị sửa*
-           để trạng thái chuyển sang ĐÃ BỊ SỬA.
-        4. **Đồng thuận PoW**: chọn độ khó, đào khối và giải thích `nonce`, thời gian đào, tốc độ băm.
-        5. Bật *Mô phỏng kẻ tấn công đào lại*: kẻ tấn công đào lại chuỗi vẫn hợp lệ về hash,
-           luật đồng thuận theo tổng công mới là thứ bảo vệ dữ liệu.
-        6. Tăng số khối đào thêm của kẻ tấn công để mô phỏng **tấn công 51%** và nêu giới hạn.
-        7. Kết thúc: đây là demo giáo dục, dữ liệu mô phỏng, chưa phải kết quả nghiên cứu chính thức.
-        """
+    render_section_heading(
+        "Kịch bản thuyết trình",
+        "Một luồng demo ngắn, đi từ dự báo đến kiểm chứng và giới hạn bảo mật.",
+        ":material/slideshow:",
     )
+    steps = [
+        ("01", "Đọc tín hiệu", "Mở Tổng quan & ML, chọn RandomForest và xem dự báo phụ tải."),
+        ("02", "Đối chiếu mô hình", "So sánh MAE / RMSE / R² với baseline tuyến tính."),
+        ("03", "Kiểm chứng hash", "Bật mô phỏng dữ liệu bị sửa để thấy trạng thái ĐÃ BỊ SỬA."),
+        ("04", "Đào Proof of Work", "Giải thích nonce, độ khó, thời gian đào và tốc độ băm."),
+        ("05", "Chạy đồng thuận", "Bật đào lại, sau đó tăng block vượt để mô phỏng tấn công 51%."),
+    ]
+    for number, title, detail in steps:
+        with st.container(border=True):
+            left, right = st.columns([0.12, 0.88], vertical_alignment="center")
+            left.markdown(f"### {number}")
+            right.markdown(f"**{title}**  \n{detail}")
     st.warning(
         "Không trình bày hash/PoW là bảo mật tuyệt đối. Chuỗi hash phát hiện sửa đổi; "
         "PoW + luật đồng thuận chống sửa đổi khi kẻ tấn công không nắm đa số năng lực đào."
@@ -346,19 +536,23 @@ def render_guide() -> None:
 
 def main() -> None:
     configure_logging()
-    st.set_page_config(page_title="Smart Grid Monitor · Nhóm 17", page_icon="⚡", layout="wide")
-    st.title("Smart Grid Monitor")
-    st.caption(
-        "Nhóm 17 · Ứng dụng AI (Machine Learning) và Blockchain bảo mật trong Thành phố thông minh · "
-        "Nhiệm vụ: ML cho Smart Grid và cơ chế đồng thuận Blockchain chống giả mạo."
+    st.set_page_config(
+        page_title="Smart Grid Monitor · Nhóm 17",
+        page_icon=":material/electric_bolt:",
+        layout="wide",
+        initial_sidebar_state="expanded",
     )
+    inject_styles()
+    render_header()
 
     options = model_options()
     available = [option for option in options if option["available"]]
     unavailable = [option for option in options if not option["available"]]
 
     with st.sidebar:
-        st.header("Điều khiển demo")
+        st.markdown('<div class="sg-sidebar-kicker">Demo control room</div>', unsafe_allow_html=True)
+        st.header("Điều khiển demo", icon=":material/tune:")
+        st.caption("Điều chỉnh tham số ở đây; các tab bên phải cập nhật theo cùng một phiên.")
         dataset_label = st.selectbox("Nguồn dữ liệu mẫu", list(DATASETS.keys()), key="dataset")
         uploaded_file = st.file_uploader(
             "Hoặc tải dữ liệu CSV",
@@ -375,12 +569,10 @@ def main() -> None:
         )
         horizon = st.slider("Số giờ muốn dự đoán", min_value=1, max_value=12, value=6, key="horizon")
 
-        st.divider()
-        st.caption("Mô phỏng chuỗi hash")
+        st.caption("Chuỗi hash")
         tamper_demo = st.toggle("Mô phỏng dữ liệu bị sửa (tab Hash)", value=False, key="tamper_demo")
 
-        st.divider()
-        st.caption("Mô phỏng Proof of Work")
+        st.caption("Proof of Work")
         difficulty = st.select_slider(
             "Độ khó đào", options=list(range(1, MAX_DIFFICULTY + 1)), value=2, key="difficulty"
         )
@@ -431,7 +623,10 @@ def main() -> None:
         st.stop()
 
     source_label = "file CSV vừa tải" if uploaded_file is not None else dataset_label
-    st.caption(f"Nguồn dữ liệu: {source_label} · Mô hình: {forecast.model_name}")
+    st.markdown(
+        f'<div class="sg-meta"><span>Nguồn: {source_label}</span><span>Mô hình: {forecast.model_name}</span></div>',
+        unsafe_allow_html=True,
+    )
 
     mining_records = build_mining_records(data, forecast, block_count, consumer_id)
 
@@ -458,16 +653,30 @@ def main() -> None:
             extra_blocks,
         )
     with data_tab:
-        st.subheader("Bảng dữ liệu đầu vào")
-        st.dataframe(data, width="stretch", hide_index=True)
-        st.subheader("Bản ghi sẽ ghi vào blockchain")
-        st.dataframe(mining_records, width="stretch", hide_index=True)
-        st.download_button(
-            "Tải dữ liệu đã làm sạch",
-            data.to_csv(index=False).encode("utf-8"),
-            file_name="smart_grid_cleaned.csv",
-            mime="text/csv",
+        render_section_heading(
+            "Dữ liệu đầu vào",
+            "Kiểm tra dữ liệu đã làm sạch trước khi đưa sang ML và Blockchain.",
+            ":material/table_chart:",
         )
+        with st.container(border=True):
+            st.markdown("**Bảng dữ liệu đầu vào**")
+            st.dataframe(data, width="stretch", hide_index=True, height=380, alt="Bảng dữ liệu đầu vào đã làm sạch")
+        with st.container(border=True):
+            st.markdown("**Bản ghi sẽ ghi vào Blockchain**")
+            st.dataframe(
+                mining_records,
+                width="stretch",
+                hide_index=True,
+                height=280,
+                alt="Bảng bản ghi chuẩn bị ghi vào Blockchain",
+            )
+            st.download_button(
+                "Tải dữ liệu đã làm sạch",
+                data.to_csv(index=False).encode("utf-8"),
+                file_name="smart_grid_cleaned.csv",
+                mime="text/csv",
+                icon=":material/download:",
+            )
     with guide_tab:
         render_guide()
 
