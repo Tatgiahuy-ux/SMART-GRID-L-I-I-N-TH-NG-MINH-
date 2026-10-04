@@ -1,0 +1,26 @@
+{
+  "model_name": "RandomForestRegressor (100 cây)",
+  "n_estimators": 100,
+  "features": [
+    "hour",
+    "day",
+    "month",
+    "dayofweek"
+  ],
+  "target": "consumption_kwh",
+  "data_file": "power_consumption.csv",
+  "n_rows": 720,
+  "n_train": 576,
+  "n_test": 144,
+  "test_ratio": 0.2,
+  "random_state": 42,
+  "mae": 0.1977,
+  "rmse": 0.2467,
+  "r2": 0.9729,
+  "baseline_linear_mae": 1.2324,
+  "test_start": "2026-01-25T00:00:00",
+  "test_end": "2026-01-30T23:00:00",
+  "trained_at": "2026-10-03T23:46:45-07:00",
+  "sklearn_version": "1.9.1",
+  "pandas_version": "3.0.1"
+}

@@ -3,7 +3,9 @@
 from dataclasses import dataclass
 import hashlib
 import json
-from typing import Any
+from typing import Any, Iterable
+
+import pandas as pd
 
 
 @dataclass(frozen=True)
@@ -40,6 +42,38 @@ class IntegrityChain:
         )
         self.blocks.append(block)
         return block
+
+    def add_records(self, records: Iterable[dict[str, Any]]) -> None:
+        """Append multiple records while preserving their order."""
+        for record in records:
+            self.add_record(record)
+
+    def tamper_block(self, index: int, field: str, value: Any) -> None:
+        """Change a payload without updating its hash for the demo tamper scenario."""
+        block = self.blocks[index]
+        payload = dict(block.payload)
+        payload[field] = value
+        self.blocks[index] = Block(
+            index=block.index,
+            payload=payload,
+            previous_hash=block.previous_hash,
+            hash=block.hash,
+        )
+
+    def to_frame(self) -> pd.DataFrame:
+        """Return a compact table suitable for Streamlit."""
+        return pd.DataFrame(
+            [
+                {
+                    "block": block.index,
+                    "timestamp": block.payload.get("timestamp", ""),
+                    "consumption_kwh": block.payload.get("consumption_kwh", ""),
+                    "hash": block.hash,
+                    "previous_hash": block.previous_hash,
+                }
+                for block in self.blocks
+            ]
+        )
 
     def is_valid(self) -> bool:
         previous_hash = "0" * 64
