@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+
+# Secret của Streamlit: KHÔNG bao giờ commit.
+# config.toml thì được commit vì chỉ chứa cấu hình bảo mật, không chứa khoá.
+.streamlit/secrets.toml
+
+# Thư mục tạm khi chạy kiểm thử giao diện
+.tmp-test/
+logs/
+
+# Bản clone repo GitHub cũ của nhóm nằm lồng trong project (có .git riêng).
+# Không commit vào repo này để tránh tạo gitlink/submodule hỏng.
+SMART-GRID-L-I-I-N-TH-NG-MINH-/

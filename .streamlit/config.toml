@@ -1,0 +1,28 @@
+# Cấu hình Streamlit cho demo Smart Grid (Nhóm 17).
+#
+# File này KHÔNG chứa secret nên được commit vào git. Secret (nếu sau này có) phải để ở
+# .streamlit/secrets.toml — file đó đã bị .gitignore chặn.
+
+[server]
+# Mục 8 – giới hạn dung lượng upload: 5 MB (mặc định của Streamlit là 200 MB).
+# Phải khớp với MAX_UPLOAD_MB trong security.py.
+maxUploadSize = 5
+
+# Mục 16 – tuyệt đối không dùng CORS dấu sao: giữ bảo vệ CORS + XSRF của Streamlit.
+# (Đặt enableCORS = false sẽ khiến Streamlit trả "Access-Control-Allow-Origin: *".)
+enableCORS = true
+enableXsrfProtection = true
+
+# Mục 15 – SameSite cho cookie XSRF. "lax" là mặc định an toàn cho web chạy sau HTTPS.
+# Chỉ đổi sang "none" khi thật sự cần nhúng cross-site, và phải hiểu rủi ro CSRF.
+xsrfCookieSameSite = "lax"
+
+[client]
+# Mục 6 – không hiển thị traceback / chi tiết lỗi ra trình duyệt.
+# Khi cần gỡ lỗi lúc phát triển, chạy tạm:
+#   streamlit run app.py --client.showErrorDetails=full
+showErrorDetails = "none"
+
+[browser]
+# Không gửi thống kê sử dụng ra ngoài.
+gatherUsageStats = false
