@@ -25,28 +25,28 @@ powershell -ExecutionPolicy Bypass -File .\run_demo.ps1
 ```
 
 Script tự: kiểm tra `.venv` → cài thư viện nếu thiếu → huấn luyện nếu chưa có `ml\model.pkl` →
-chạy 14 kiểm thử nhanh → mở Streamlit. Khi thấy dòng `Địa chỉ demo: http://localhost:8501` là sẵn sàng.
+chạy 33 kiểm thử nhanh → mở Streamlit. Khi thấy dòng `Địa chỉ demo: http://localhost:8501` là sẵn sàng.
 
 - Đổi cổng nếu 8501 bận: `.\run_demo.ps1 -Port 8502`
 - Bỏ qua kiểm thử khi đã kiểm tra trước: `.\run_demo.ps1 -SkipTests`
 - Chạy trong VS Code: mở Terminal → dán đúng lệnh trên.
 
-## 2. Thứ tự bấm máy (7 chặng)
+## 2. Thứ tự bấm máy (8 chặng)
 
 | Chặng | Thao tác trên giao diện | Giá trị cài đặt | Điều sẽ thấy | Câu nói mẫu (1 câu) |
 |---|---|---|---|---|
-| 1 | Tab **Tổng quan & ML** | Nguồn dữ liệu: `power_consumption.csv` · Mô hình: `RandomForest` · Số giờ: `6` | Biểu đồ 720 giờ + 3 ô số liệu + bảng dự đoán 6 giờ tới | "Đây là 30 ngày dữ liệu tiêu thụ theo giờ, mô hình đang dự đoán 6 giờ tiếp theo." |
-| 2 | Vẫn tab đó, cuộn xuống **Chất lượng mô hình** | — | MAE `0.20`, RMSE `0.25`, R² `0.97` | "Trên 144 giờ kiểm tra, sai số trung bình chỉ 0,2 kWh, R² 0,97." |
-| 3 | Đổi **Mô hình ML** sang `Baseline xu hướng tuyến tính` | — | Chỉ số đổi thành MAE ~`1.23` (backtest) | "Nếu chỉ ngoại suy tuyến tính thì sai số gấp hơn 6 lần — đây là lý do dùng học máy." Đổi lại RandomForest. |
-| 4 | Tab **Blockchain / Hash** | Tắt "Mô phỏng dữ liệu bị sửa" | Trạng thái **HỢP LỆ**, bảng hash từng block | "Mỗi bản ghi được băm SHA-256 và móc vào hash của block trước." |
-| 5 | Vẫn tab đó, bật **Mô phỏng dữ liệu bị sửa** | Bật | Trạng thái **ĐÃ BỊ SỬA** (đỏ) | "Chỉ cần sửa một số điện, toàn bộ chuỗi báo sai ngay." Tắt lại. |
-| 6 | Tab **Đồng thuận PoW** | Độ khó: `2` · Số block: `6` · Mã đồng hồ: `METER_001` | 7 block, tổng nonce, thời gian đào, tốc độ băm ~170.000 H/s | "Mỗi block phải được đào: tìm nonce sao cho hash bắt đầu bằng hai số 0." |
-| 7 | Vẫn tab đó, bật **Mô phỏng kẻ tấn công đào lại** → kéo **Số khối đào vượt thêm** = `0`, rồi `2` | 0 → 2 | 0: "giữ chuỗi của nút trung thực"; 2: "nút tấn công thắng" | "Kẻ tấn công đào lại thì chuỗi vẫn hợp lệ về hash; hệ thống phải so tổng công. Khi hắn đào vượt, hắn thắng — đó là tấn công 51%, đây là giới hạn thật của blockchain." |
-| 8 | Tab **Hướng dẫn demo** (tuỳ thời gian) | — | Kịch bản 7 bước + cảnh báo giới hạn | "Tụi em ghi rõ giới hạn để không nói quá về bảo mật." |
+| 1 | Tab **Tổng quan & ML** | Nguồn dữ liệu: `power_consumption.csv` (720 giờ) · Mô hình: `RandomForest` · Số giờ: `6` | Hàng 4 ô số liệu (bản ghi, điện năng hiện tại, trung bình, dự đoán giờ kế tiếp) + biểu đồ 720 giờ + bảng dự đoán 6 giờ tới | "Đây là 30 ngày dữ liệu tiêu thụ theo giờ, mô hình đang dự đoán 6 giờ tiếp theo." |
+| 2 | Vẫn tab đó, xem hàng số liệu thứ hai và bảng **So sánh mô hình trên cùng tập kiểm tra** | — | MAE `0.20`, RMSE `0.25`, R² `0.9729` · 144 bản ghi kiểm tra; bảng 2 dòng: RandomForest (0,1977) và baseline (1,2324) | "Trên 144 giờ kiểm tra, sai số trung bình chỉ 0,2 kWh, R² 0,97; baseline tuyến tính sai số 1,23 kWh." |
+| 3 | Đổi **Mô hình dự đoán** sang `Baseline xu hướng tuyến tính` | — | KPI đổi thành MAE ~`1.27` (chỉ số KPI là backtest 1 bước trên toàn bộ dữ liệu); RMSE và R² hiện `—` vì baseline chỉ có MAE | "Nếu chỉ ngoại suy tuyến tính thì sai số gấp hơn 6 lần — đây là lý do dùng học máy." Đổi lại RandomForest. |
+| 4 | Tab **Blockchain / Hash** | Tắt "Mô phỏng dữ liệu bị sửa" · Số block hiển thị: `4` | Ô **Trạng thái = Hợp lệ**, 4 thẻ block (Block #0…#3) kèm `hash` và `previous_hash` | "Mỗi bản ghi được băm SHA-256 và móc vào hash của block trước." |
+| 5 | Vẫn tab đó, bật **Mô phỏng dữ liệu bị sửa** | Bật | Ô **Trạng thái = Bị sửa**, ô **Block bị sửa = #0**, băng đỏ "hash không khớp", thẻ Block #0 hiện `consumption_kwh: 9999.0` | "Chỉ cần sửa một số điện, toàn bộ chuỗi báo sai ngay." Tắt lại → quay về **Hợp lệ**. |
+| 6 | Tab **Đồng thuận PoW** | Độ khó: `2` · Số block: `6` · Mã đồng hồ: `METER_001` | 7 block · tổng nonce ~`2.100` · thời gian đào ~`0,01 s` · tốc độ băm ~`170k H/s`, kèm bảng block có nonce/difficulty/hash | "Mỗi block phải được đào: tìm nonce sao cho hash bắt đầu bằng hai số 0." |
+| 7 | Vẫn tab đó, bật **Mô phỏng kẻ tấn công đào lại** → kéo **Số khối đào vượt thêm** = `0`, rồi `2` | 0 → 2 | 0: hai chuỗi cùng độ dài 7 block, cùng tổng công `28` → "giữ chuỗi của nút trung thực"; 2: chuỗi tấn công 9 block, tổng công `36` > `28` → "nút tấn công thắng" | "Kẻ tấn công đào lại thì chuỗi vẫn hợp lệ về hash; hệ thống phải so tổng công. Khi hắn đào vượt, hắn thắng — đó là tấn công 51%, đây là giới hạn thật của blockchain." |
+| 8 | Tab **Hướng dẫn demo** (tuỳ thời gian) | — | Kịch bản 6 bước + cảnh báo giới hạn | "Tụi em ghi rõ giới hạn để không nói quá về bảo mật." |
 
 **Thời lượng gợi ý:** chặng 1–3 ≈ 3 phút · chặng 4–5 ≈ 1,5 phút · chặng 6–7 ≈ 2,5 phút · còn lại dự phòng.
 
-**Lưu ý khi bấm:** đổi độ khó lên `4` sẽ mất khoảng 1,3 giây đào — chỉ dùng nếu còn thời gian và muốn
+**Lưu ý khi bấm:** đổi độ khó lên `4` sẽ mất khoảng 2,4 giây đào 7 block — chỉ dùng nếu còn thời gian và muốn
 cho thấy độ khó làm chậm việc đào; đừng để ở mức 4 suốt buổi vì mỗi lần bấm lại phải đào lại.
 
 ## 3. Phương án dự phòng
@@ -84,5 +84,5 @@ cho thấy độ khó làm chậm việc đào; đừng để ở mức 4 suốt
 | PoW ở đây khác gì Bitcoin? | Cùng nguyên lý: tìm nonce để hash đạt độ khó, chuỗi liên kết bằng hash khối trước, luật chọn chuỗi nặng nhất. Khác: chỉ mô phỏng trong một tiến trình, độ khó rất thấp, không có mạng P2P và chữ ký số. |
 | Nếu sửa dữ liệu rồi đào lại hết thì sao? | Chuỗi sẽ hợp lệ trở lại về hash — đó là lý do phải có luật đồng thuận theo tổng công; nếu kẻ tấn công nắm đa số năng lực đào thì hắn thắng (tấn công 51%), nhóm mô phỏng đúng kịch bản này. |
 | Vì sao mỗi block lưu cả số dự đoán của ML? | Để lưu vết "mô hình đã dự đoán gì tại thời điểm đó" phục vụ đối soát/kiểm toán, và tính `deviation_kwh` giữa thực tế và dự đoán mà không ai sửa được. |
-| Hệ thống chịu được bao nhiêu block? | Demo đào 6–12 block tuỳ chọn; tốc độ ~170.000 hash/giây trên laptop, độ khó 4 mất khoảng 1,3 giây cho 7 block. |
+| Hệ thống chịu được bao nhiêu block? | Demo đào 6–12 block tuỳ chọn; tốc độ ~170.000 hash/giây trên laptop, độ khó 4 mất khoảng 2,4 giây cho 7 block. |
 | Phần nào là của bạn? | Em phụ trách tích hợp: viết `app.py`, `ml/predictor.py`, `blockchain/chain.py` + `consensus.py`, bộ kiểm thử `tools/`, script chạy demo `run_demo.ps1`, và điều khiển máy khi demo. |

@@ -241,7 +241,10 @@ def _predict_with_baseline(data: pd.DataFrame, values: list[float], horizon: int
         mae=mae,
         fitted=fitted,
         future_timestamps=future_timestamps,
-        metrics_source="Backtest 1 bước (walk-forward) trên toàn bộ dữ liệu đầu vào.",
+        metrics_source=(
+            f"Baseline: backtest 1 bước (walk-forward) trên toàn bộ {len(values):,} "
+            "bản ghi đầu vào; không phải tập kiểm tra 20%."
+        ),
         note=BASELINE_NOTE,
     )
 

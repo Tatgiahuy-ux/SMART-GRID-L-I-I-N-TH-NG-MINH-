@@ -18,9 +18,12 @@
   "rmse": 0.2467,
   "r2": 0.9729,
   "baseline_linear_mae": 1.2324,
+  "baseline_linear_rmse": 1.5044,
+  "baseline_linear_r2": -0.0086,
+  "baseline_linear_name": "Ngoại suy tuyến tính 1 bước (walk-forward)",
   "test_start": "2026-01-25T00:00:00",
   "test_end": "2026-01-30T23:00:00",
-  "trained_at": "2026-10-03T23:46:45-07:00",
+  "trained_at": "2026-10-04T17:06:53+07:00",
   "sklearn_version": "1.9.1",
   "pandas_version": "3.0.1"
 }

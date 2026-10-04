@@ -37,7 +37,9 @@ The project combines electricity-consumption forecasting and tamper-evident data
 - If scikit-learn or `ml/model.pkl` is unavailable, the ML module falls back to an explainable linear-trend baseline and reports the reason, so the demo always runs.
 - The Blockchain module creates a SHA-256 hash chain, mines Proof-of-Work blocks with a configurable difficulty, verifies nonce/difficulty/linkage, and resolves conflicts with the heaviest-chain rule.
 - The Streamlit interface exposes five tabs: overview and ML metrics, hash integrity, Proof-of-Work consensus, data, and the presentation script.
-- `tools/smoke_test.py` and `tools/ui_test.py` verify the integrated flow headlessly (8 + 8 checks).
+- The interface is styled as a plain technical monitoring dashboard: light background, one blue accent, small corner radii, no gradients or glow, and all colors/typography configured in `.streamlit/config.toml` (no custom CSS injected from `app.py`). Labels and copy are in Vietnamese with English technical terms kept only where they are meaningful (RandomForest, SHA-256, nonce, `previous_hash`).
+- `tools/smoke_test.py` (33 checks) and `tools/ui_test.py` (21 checks) verify the integrated flow headlessly; `tools/web_test.py` (20 checks) covers HTTP/WebSocket and input robustness, and `tools/browser_test.py` (23 checks) drives a real Edge browser and refreshes the demo screenshots.
+- `tools/smoke_test.py` re-trains the RandomForest from the raw CSV and compares against `ml/metrics.json`, so the MAE/RMSE/R² shown on screen are proven to be produced by the pipeline rather than typed in.
 - The dataset is simulated by script, not measured from a real grid, and Smart Mobility data is not covered yet.
 - The PoW/consensus demo runs inside a single process with two simulated branches; it is not a peer-to-peer network and has no digital signatures or smart contracts.
 - This is an educational demonstration. Hash verification and PoW must not be presented as absolute protection against all forms of data tampering; a majority-hash-power attacker is demonstrated explicitly.

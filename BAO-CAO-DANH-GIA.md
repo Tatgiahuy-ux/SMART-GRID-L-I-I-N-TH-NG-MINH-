@@ -13,7 +13,7 @@
 | Project trước khi tích hợp có phải demo của đề tài này? | **Đúng một phần.** Đó là khung demo Smart Grid (ML + hash) — tức chỉ nửa đầu của nhiệm vụ. Không có Smart Mobility, không có cơ chế đồng thuận. |
 | Trước khi tích hợp đã dùng mô hình ML thật chưa? | **Chưa.** `ml/predictor.py` chỉ là hồi quy tuyến tính tự viết; mô hình RandomForest do thành viên ML gửi nằm ở `Downloads`, chưa nối vào app. |
 | Trước khi tích hợp đã có cơ chế đồng thuận chưa? | **Chưa.** `blockchain/chain.py` chỉ là chuỗi hash 1 nút, chỉ *phát hiện* sửa đổi. Module PoW của thành viên Blockchain chưa nối và còn lỗi. |
-| Sau khi tích hợp (hôm nay) đã đạt gì? | ML RandomForest chạy thật có chỉ số kiểm tra (**MAE 0.1977 · RMSE 0.2467 · R² 0.9729**), chuỗi PoW có **luật đồng thuận chuỗi nặng nhất**, mô phỏng được **tấn công 51%**; 23/23 kiểm tra tự động đạt. |
+| Sau khi tích hợp (hôm nay) đã đạt gì? | ML RandomForest chạy thật có chỉ số kiểm tra (**MAE 0.1977 · RMSE 0.2467 · R² 0.9729**), chuỗi PoW có **luật đồng thuận chuỗi nặng nhất**, mô phỏng được **tấn công 51%**; 97/97 kiểm tra tự động đạt (4 bộ, xem mục 11). |
 | Còn thiếu gì để đúng đề tài? | Smart Mobility (0%), dữ liệu thật, mạng P2P nhiều nút thật, chữ ký số/smart contract, đánh giá học thuật. |
 
 ---
@@ -61,12 +61,12 @@
 | `ml/predictor.py` | Viết lại: `ForecastResult` mở rộng (RMSE, R², `fitted`, `metrics_source`, `fallback_reason`); hỗ trợ `model="random_forest" / "linear" / "auto"`; **tự lùi về baseline kèm lý do** nếu thiếu scikit-learn hoặc `model.pkl` |
 | `blockchain/consensus.py` | **Mới**: `ProofOfWorkChain` — đào PoW có `nonce`/`difficulty`/thời gian đào, `validation_error()` mô tả lỗi cụ thể, `tamper_block()` (sửa ẩu) và `tamper_and_remine()` (kẻ tấn công đào lại), **`resolve_conflict()` = luật đồng thuận chuỗi nặng nhất**, payload `consumer_id / actual_usage_kwh / predicted_usage_kwh` |
 | `app.py` | 5 tab: Tổng quan & ML (chỉ số MAE/RMSE/R², biểu đồ thực tế vs mô hình, chọn mô hình), Blockchain/Hash, **Đồng thuận PoW** (đào khối, nonce, tốc độ băm, so sánh 2 chuỗi, kết luận đồng thuận), Dữ liệu, Hướng dẫn |
-| `tools/smoke_test.py` | **Mới**: 14 kiểm tra luồng tích hợp (không cần Streamlit) |
-| `tools/ui_test.py` | **Mới**: 9 kiểm tra giao diện bằng `streamlit.testing.v1.AppTest` (chạy thật `app.py`) |
+| `tools/smoke_test.py` | **Mới**: kiểm tra luồng tích hợp, không cần Streamlit (nay 33 điểm — xem mục 11) |
+| `tools/ui_test.py` | **Mới**: kiểm tra giao diện bằng `streamlit.testing.v1.AppTest` (chạy thật `app.py`; nay 20 điểm) |
 | `ml/generate_data.py` | Đưa script sinh dữ liệu của thành viên ML vào repo; chạy lại cho ra `data/power_consumption.csv` **trùng khớp từng byte** |
 | `run_demo.ps1` | Một lệnh chạy demo: kiểm tra `.venv` → cài thư viện → huấn luyện → chạy kiểm thử → mở Streamlit (đã kiểm chứng dưới Windows PowerShell 5.1: HTTP 200) |
 | `TICH-HOP-NOTE-PPT.md` | Note logic + số liệu + bố cục 12 slide cho thành viên làm PPT/Word |
-| `KICH-BAN-DEMO.md` | Kịch bản bấm máy 7 chặng, 6 phương án dự phòng, Q&A 8 câu |
+| `KICH-BAN-DEMO.md` | Kịch bản bấm máy 8 chặng, 6 phương án dự phòng, Q&A 8 câu |
 | `team-deliverables/` | Lưu bản gốc `ml_model_goc.py`, `generate_data.py`, `blockchain_module_goc.py` để đối chiếu, không sửa bản gốc |
 | `README.md`, `PRODUCT.md`, `requirements.txt` | Cập nhật theo hiện trạng mới; thêm `scikit-learn`, `joblib` |
 
@@ -99,17 +99,30 @@
 
 ### 5.2 Proof of Work (7 block = genesis + 6 bản ghi, Python thuần)
 
-| Độ khó | Tổng nonce | Thời gian đào | Tốc độ băm | Hợp lệ |
-|---|---|---|---|---|
-| 1 | 136 | 0.001 s | ~170.600 H/s | ✔ |
-| 2 | 1.724 | 0.010 s | ~171.500 H/s | ✔ |
-| 3 | 14.061 | 0.073 s | ~192.100 H/s | ✔ |
-| 4 | 246.685 | 1.305 s | ~189.000 H/s | ✔ |
+| Độ khó | Tổng nonce | Tổng phép băm | Thời gian đào | Tốc độ băm | Hợp lệ |
+|---|---|---|---|---|---|
+| 1 | 86 | 93 | 0.001 s | ~160.000 H/s | ✔ |
+| 2 | 2.108 | 2.115 | 0.012 s | ~170.000 H/s | ✔ |
+| 3 | 16.315 | 16.322 | 0.104 s | ~157.000 H/s | ✔ |
+| 4 | 393.097 | 393.104 | 2.399 s | ~164.000 H/s | ✔ |
+
+Cách đo: `.\.venv\Scripts\python.exe tools\pow_measure.py` (đào lại 7 block từ dữ liệu thật + dự đoán
+của RandomForest ở từng độ khó). Số nonce là kết quả của việc tìm hash đạt độ khó nên **không đoán
+trước được**, nhưng tái lập được: cùng payload + cùng độ khó thì ra cùng nonce. Thời gian đào và tốc
+độ băm **phụ thuộc máy** (đo được khoảng 0,12–0,19 triệu H/s trên laptop), nên chỉ nêu khoảng.
 
 ### 5.3 Kiểm thử tự động
 
-- `tools/smoke_test.py`: **14/14 đạt** — dự đoán RF trả đủ số giờ; chuỗi hash hợp lệ; phát hiện sửa payload; hash PoW đạt độ khó; sửa payload không đào lại ⇒ chuỗi không hợp lệ; hòa tổng công ⇒ giữ nút trung thực; đào vượt 2 khối ⇒ kẻ tấn công thắng (mô phỏng 51%).
-- `tools/ui_test.py`: **9/9 đạt** — app khởi động không ngoại lệ, 5 tab, thông báo hợp lệ/không hợp lệ, hai kết luận đồng thuận, đổi mô hình sang baseline không lỗi, và bộ dữ liệu nhỏ 8 giờ vẫn đào khối được.
+- `tools/smoke_test.py`: **33/33 đạt** — tái lập dữ liệu; dự đoán RF; **huấn luyện lại từ dữ liệu gốc
+  và đối chiếu `ml/metrics.json`** (MAE/RMSE/R² và cả baseline); chuỗi hash hợp lệ và chỉ đúng block bị
+  sửa; hash PoW đạt độ khó, nonce tái tạo được hash; tổng phép băm/tốc độ băm đo thật; hòa tổng công ⇒
+  giữ nút trung thực; đào vượt 2 khối ⇒ kẻ tấn công thắng (mô phỏng 51%); nhánh tấn công đào lại đúng
+  dữ liệu gốc; 8 kiểm tra bảo mật đầu vào.
+- `tools/ui_test.py`: **21/21 đạt** — app khởi động không ngoại lệ, 5 tab, KPI khớp `metrics.json`,
+  bảng so sánh baseline, thẻ block có hash/previous_hash, bật/tắt mô phỏng sửa dữ liệu (bật ⇒ bị sửa,
+  tắt ⇒ hợp lệ), hai kết luận đồng thuận, đổi mô hình/số giờ/dataset đều cập nhật đúng.
+- `tools/web_test.py`: **20/20 đạt** — HTTP/WebSocket thật, 10 loại CSV, ngưỡng 5 MB, đo hiệu năng.
+- `tools/browser_test.py`: **23/23 đạt** — Edge thật ở 1440×900, không tràn ngang/không cắt chữ số liệu.
 
 ---
 
@@ -159,8 +172,8 @@ cd C:\Users\huy\Project\CongNgheVienThong
 python -m venv --system-site-packages .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe ml\train_model.py     # sinh ml\model.pkl + ml\metrics.json (số ở mục 5.1)
-.\.venv\Scripts\python.exe tools\smoke_test.py   # 14 kiểm tra luồng tích hợp
-.\.venv\Scripts\python.exe tools\ui_test.py      # 9 kiểm tra giao diện
+.\.venv\Scripts\python.exe tools\smoke_test.py   # 33 kiểm tra luồng tích hợp + đối chiếu chỉ số
+.\.venv\Scripts\python.exe tools\ui_test.py      # 20 kiểm tra giao diện
 .\.venv\Scripts\python.exe -m streamlit run app.py
 ```
 
@@ -174,5 +187,36 @@ python -m venv --system-site-packages .venv
 | Luật đồng thuận | `blockchain/consensus.py` → `resolve_conflict()`, `tamper_and_remine()` |
 | Lỗi module gốc của nhóm | `team-deliverables/blockchain_module_goc.py` dòng 14–21 (thiếu `return`) |
 | Bản ML gốc của nhóm | `team-deliverables/ml_model_goc.py` |
-| Kịch bản thuyết trình | `app.py` → tab "Hướng dẫn demo" |
-| Kiểm thử | `tools/smoke_test.py`, `tools/ui_test.py` |
+| Kịch bản thuyết trình | `app.py` → tab "Hướng dẫn demo" (6 bước) hoặc [KICH-BAN-DEMO.md](KICH-BAN-DEMO.md) (8 chặng bấm máy) |
+| Kiểm thử logic + chỉ số | `tools/smoke_test.py` (33 điểm, có đối chiếu `ml/metrics.json`) |
+| Kiểm thử giao diện | `tools/ui_test.py` (20 điểm), `tools/browser_test.py` (23 điểm + ảnh `anh-demo/`) |
+| Kiểm thử web/dữ liệu | `tools/web_test.py` (20 điểm) |
+| Báo cáo kiểm thử đầy đủ | [KIEM-THU-WEB.md](KIEM-THU-WEB.md) |
+
+---
+
+## 11. Cập nhật 2026-10-04 — vòng rà soát logic + thiết kế lại giao diện
+
+Sau khi tích hợp, nhóm rà soát lại toàn bộ theo hướng "demo đồ án kỹ thuật": giao diện cũ theo
+phong cách dashboard tối màu (gradient, glow, thẻ bo tròn, hero tiếng Anh) bị thay bằng bảng điều
+khiển kỹ thuật nền sáng, tiếng Việt, ít trang trí. Chi tiết:
+
+| Hạng mục | Trước | Sau |
+|---|---|---|
+| Giao diện | CSS nhúng trong `app.py`: nền navy + radial-gradient, quầng sáng mờ, hero "Smart Grid Monitor / Smart city · operations lab", pill "ML forecasting · SHA-256 integrity · Proof of Work" | Không còn CSS/HTML nhúng; tiêu đề "HỆ THỐNG GIÁM SÁT VÀ DỰ ĐOÁN PHỤ TẢI ĐIỆN"; màu sắc/kiểu chữ đặt hết trong `.streamlit/config.toml` (nền sáng, một màu nhấn xanh dương, bo góc nhỏ 4 px) |
+| Tab Tổng quan | 4 ô số liệu + 2 biểu đồ + ghi chú | Thêm hàng KPI dữ liệu (bản ghi, điện năng hiện tại, trung bình, dự đoán giờ kế tiếp), hàng chỉ số mô hình (MAE/RMSE/R²/số bản ghi kiểm tra) và **bảng so sánh RandomForest với baseline trên cùng tập kiểm tra** |
+| Tab Blockchain/Hash | 1 bảng 720 dòng | Thẻ block trực quan (Block #0…#3 kèm dữ liệu, `hash`, `previous_hash`), ô "Block bị sửa", thông báo ✅/❌ nêu đúng block lỗi; bảng đầy đủ chuyển vào mục mở rộng |
+| Tab PoW | KPI + bảng block | Giữ KPI (số block, độ khó, tổng nonce, thời gian đào, tốc độ băm), ghi rõ **đây là mô phỏng một tiến trình**, thêm dòng số phép băm đo thật |
+| Phần 51% | 1 bảng so sánh | Hai thẻ "Chuỗi trung thực" / "Chuỗi tấn công" (số block, tổng công, hợp lệ, dữ liệu tại block bị sửa), kết luận nêu rõ vì sao chọn chuỗi, bảng chi tiết trong mục mở rộng |
+| Sidebar | Danh sách phẳng, nhãn dài | 3 nhóm **Dữ liệu / Mô hình / Mô phỏng Blockchain**, nhãn ngắn, giữ nguyên thứ tự để kịch bản demo không đổi |
+| Logic 51% | Nhánh tấn công đào thêm block giả (`consumer_id: ATTACKER`) ngay từ block kế tiếp | Nhánh tấn công **đào lại đúng dữ liệu gốc** của phần đuôi (re-org thật), chỉ thêm block mới khi `extra_blocks > 0`; kết luận 0 khối ⇒ trung thực thắng, 2 khối ⇒ tấn công thắng vẫn giữ nguyên |
+| Tốc độ băm | `total_nonce / thời gian` (bỏ sót 1 phép băm mỗi block) | `total_attempts / thời gian` với `total_attempts = Σ(nonce + 1)` — đúng số phép băm đã thực hiện |
+| Chỉ số baseline | Chỉ có MAE (1,2324) | Bổ sung RMSE (1,5044) và R² (-0,0086) **trên cùng tập kiểm tra**, do `ml/train_model.py` sinh ra |
+| Upload CSV | Chỉ đọc UTF-8 thường | `security.read_uploaded_csv()` đọc cả CSV có BOM của Excel, cắt khoảng trắng tên cột |
+| Chỉ số ML | Chỉ hiển thị | `tools/smoke_test.py` **huấn luyện lại từ dữ liệu gốc và đối chiếu** — chứng minh số trên giao diện là kết quả thật (MAE 0.1977 · RMSE 0.2467 · R² 0.9729 khớp từng chữ số) |
+| Kiểm thử | 57 kiểm tra (4 bộ) | **97 kiểm tra (4 bộ)**: smoke 33, ui 21, web 20, browser 23 |
+| Ảnh demo | 8 ảnh của giao diện cũ | Chụp lại 8 ảnh theo giao diện mới ở 1440×900 |
+
+Không thay đổi: dữ liệu, mô hình `ml/model.pkl` (băm SHA-256 **không đổi** sau khi huấn luyện lại),
+kết quả dự đoán, ý nghĩa đề tài, các hàm/hợp đồng tích hợp (`predict_consumption`,
+`resolve_conflict`, `tamper_and_remine`, `IntegrityChain.is_valid`).

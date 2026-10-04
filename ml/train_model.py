@@ -71,13 +71,26 @@ def load_dataset(path: Path = DATA_PATH) -> pd.DataFrame:
     return frame.dropna(subset=["timestamp", TARGET]).sort_values("timestamp").reset_index(drop=True)
 
 
-def baseline_mae(values: list[float], start: int) -> float:
-    """MAE một bước của baseline xu hướng tuyến tính trên đoạn test."""
-    errors = [
-        abs(linear_trend_forecast(values[:index], 1)[0] - values[index])
+def baseline_predictions(values: list[float], start: int) -> list[float]:
+    """Dự đoán 1 bước (walk-forward) của baseline xu hướng tuyến tính trên đoạn test.
+
+    Mỗi mốc ``index`` chỉ dùng dữ liệu **trước** nó (``values[:index]``) rồi ngoại suy
+    tuyến tính 1 bước – nhờ vậy baseline được đánh giá trên **đúng cửa sổ test** và đúng
+    kiểu dự đoán như RandomForest, không dùng thông tin tương lai.
+    """
+    return [
+        linear_trend_forecast(values[:index], 1)[0]
         for index in range(max(start, 1), len(values))
     ]
-    return float(np.mean(errors)) if errors else float("nan")
+
+
+def baseline_mae(values: list[float], start: int) -> float:
+    """MAE một bước của baseline xu hướng tuyến tính trên đoạn test."""
+    predictions = baseline_predictions(values, start)
+    if not predictions:
+        return float("nan")
+    actual = values[max(start, 1) :]
+    return float(np.mean(np.abs(np.array(predictions) - np.array(actual))))
 
 
 def train(frame: pd.DataFrame) -> tuple[RandomForestRegressor, dict]:
@@ -91,6 +104,7 @@ def train(frame: pd.DataFrame) -> tuple[RandomForestRegressor, dict]:
     predicted = model.predict(test_frame[FEATURES])
     actual = test_frame[TARGET].to_numpy()
     values = [float(value) for value in frame[TARGET]]
+    baseline_predicted = np.array(baseline_predictions(values, split_index))
 
     metrics = {
         "model_name": f"RandomForestRegressor ({N_ESTIMATORS} cây)",
@@ -106,7 +120,13 @@ def train(frame: pd.DataFrame) -> tuple[RandomForestRegressor, dict]:
         "mae": round(float(mean_absolute_error(actual, predicted)), 4),
         "rmse": round(float(np.sqrt(mean_squared_error(actual, predicted))), 4),
         "r2": round(float(r2_score(actual, predicted)), 4),
-        "baseline_linear_mae": round(baseline_mae(values, split_index), 4),
+        # Baseline được chấm trên CÙNG cửa sổ test để so sánh công bằng với RandomForest.
+        "baseline_linear_mae": round(float(mean_absolute_error(actual, baseline_predicted)), 4),
+        "baseline_linear_rmse": round(
+            float(np.sqrt(mean_squared_error(actual, baseline_predicted))), 4
+        ),
+        "baseline_linear_r2": round(float(r2_score(actual, baseline_predicted)), 4),
+        "baseline_linear_name": "Ngoại suy tuyến tính 1 bước (walk-forward)",
         "test_start": test_frame["timestamp"].iloc[0].isoformat(),
         "test_end": test_frame["timestamp"].iloc[-1].isoformat(),
         "trained_at": datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds"),
@@ -161,7 +181,12 @@ def main() -> None:
     print(f"MAE  : {metrics['mae']:.4f}")
     print(f"RMSE : {metrics['rmse']:.4f}")
     print(f"R²   : {metrics['r2']:.4f}")
-    print(f"MAE baseline xu hướng tuyến tính (cùng tập test): {metrics['baseline_linear_mae']:.4f}")
+    print(
+        "Baseline xu hướng tuyến tính (cùng tập test): "
+        f"MAE {metrics['baseline_linear_mae']:.4f} · "
+        f"RMSE {metrics['baseline_linear_rmse']:.4f} · "
+        f"R² {metrics['baseline_linear_r2']:.4f}"
+    )
     print(f"\nĐã lưu mô hình: {MODEL_PATH}")
     print(f"Đã lưu chỉ số: {METRICS_PATH}")
 

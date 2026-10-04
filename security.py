@@ -13,6 +13,7 @@ Tách riêng khỏi ``app.py`` để kiểm thử được mà không cần Stre
 
 from __future__ import annotations
 
+import io
 import logging
 from pathlib import Path
 
@@ -81,6 +82,25 @@ def validate_upload(filename: str | None, size: int | None) -> None:
             f"File vượt quá giới hạn {MAX_UPLOAD_MB} MB "
             f"({size / (1024 * 1024):.1f} MB). Vui lòng chia nhỏ dữ liệu."
         )
+
+
+def read_uploaded_csv(blob: bytes) -> pd.DataFrame:
+    """Đọc CSV do người dùng tải lên, chấp nhận cả file có BOM của Excel.
+
+    ``utf-8-sig`` xử lý BOM (nếu không, cột đầu tiên sẽ thành ``\\ufefftimestamp`` và bị
+    báo "thiếu cột bắt buộc"). Tên cột được cắt khoảng trắng thừa. Nội dung vẫn phải qua
+    ``prepare_data`` để validate.
+    """
+    if not blob:
+        raise UserInputError("File rỗng, không có dữ liệu để xử lý.")
+    try:
+        frame = pd.read_csv(io.BytesIO(blob), encoding="utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise UserInputError(
+            "Không đọc được nội dung file. Hãy lưu CSV ở định dạng UTF-8."
+        ) from exc
+    frame.columns = [str(column).strip() for column in frame.columns]
+    return frame
 
 
 def prepare_data(raw_data: pd.DataFrame) -> pd.DataFrame:

@@ -63,9 +63,11 @@ trong cùng block**, kèm `deviation_kwh` (độ lệch). Nhờ vậy về sau c
 | Mô hình | MAE (kWh) | RMSE (kWh) | R² |
 |---|---|---|---|
 | **RandomForest 100 cây** | **0.1977** | **0.2467** | **0.9729** |
-| Baseline xu hướng tuyến tính (đối chiếu) | 1.2324 | — | — |
+| Baseline ngoại suy tuyến tính 1 bước (đối chiếu) | 1.2324 | 1.5044 | -0.0086 |
 
 → RandomForest giảm sai số MAE khoảng **6,2 lần** so với baseline. Dữ liệu: 720 giờ, min/max 1.46 / 6.93 kWh, trung bình 3.965 kWh.
+→ Cả hai mô hình được chấm trên **cùng tập kiểm tra 144 giờ** (`ml/train_model.py` sinh ra `ml/metrics.json`),
+và `tools/smoke_test.py` huấn luyện lại từ dữ liệu gốc để đối chiếu — số trên slide là kết quả thật.
 
 **Tái lập được 100% (điểm cộng khi bị hỏi):** chạy lại `ml/generate_data.py` cho ra file CSV **trùng khớp từng byte** với file nhóm gửi; `ml/train_model.py` cho ra mô hình có dự đoán **trùng khớp tuyệt đối** (chênh lệch 0.0000 kWh) với `model.pkl` gốc của thành viên ML.
 
@@ -83,12 +85,17 @@ trong cùng block**, kèm `deviation_kwh` (độ lệch). Nhờ vậy về sau c
 
 **Kết quả đo được (7 block = genesis + 6 bản ghi, Python thuần trên laptop):**
 
-| Độ khó | Tổng nonce | Thời gian đào | Tốc độ băm |
+| Độ khó | Tổng nonce | Tổng phép băm | Thời gian đào | Tốc độ băm |
 |---|---|---|---|
-| 1 | 136 | 0.001 s | ~170.600 H/s |
-| 2 | 1.724 | 0.010 s | ~171.500 H/s |
-| 3 | 14.061 | 0.073 s | ~192.100 H/s |
-| 4 | 246.685 | 1.305 s | ~189.000 H/s |
+| 1 | 86 | 93 | 0.001 s | ~160.000 H/s |
+| 2 | 2.108 | 2.115 | 0.012 s | ~170.000 H/s |
+| 3 | 16.315 | 16.322 | 0.104 s | ~157.000 H/s |
+| 4 | 393.097 | 393.104 | 2.399 s | ~164.000 H/s |
+
+→ Đo lại bất cứ lúc nào: `.\\.venv\\Scripts\\python.exe tools\\pow_measure.py`.
+Số nonce **không đoán trước được** nhưng tái lập được (cùng payload + cùng độ khó ⇒ cùng nonce);
+thời gian đào và tốc độ băm **phụ thuộc máy** (khoảng 0,12–0,19 triệu H/s) nên chỉ nêu khoảng. Nonce
+thay đổi nếu đổi cấu trúc payload của block.
 
 **Hai kịch bản giả mạo để lên slide (đây là phần "chống giả mạo" của đề tài):**
 
@@ -103,7 +110,7 @@ trong cùng block**, kèm `deviation_kwh` (độ lệch). Nhờ vậy về sau c
 | **File chính** | `app.py` (5 tab), `ml/predictor.py` (hợp đồng dự đoán), `blockchain/chain.py` (chuỗi hash), `blockchain/consensus.py` (PoW + đồng thuận) |
 | **Hợp đồng tích hợp** | `predict_consumption(data, horizon) -> ForecastResult`; `IntegrityChain.add_record/is_valid`; `ProofOfWorkChain.add_energy_records/is_valid/resolve_conflict` |
 | **Chạy 1 lệnh** | `powershell -ExecutionPolicy Bypass -File .\run_demo.ps1` |
-| **Kiểm thử tự động** | `tools\smoke_test.py` (**14/14 đạt**) và `tools\ui_test.py` (**9/9 đạt**, chạy thật app bằng `streamlit.testing`) |
+| **Kiểm thử tự động** | `tools\smoke_test.py` (**33/33 đạt**, có đối chiếu lại `ml/metrics.json`), `tools\ui_test.py` (**21/21 đạt**, chạy thật app bằng `streamlit.testing`), `tools\web_test.py` (**20/20**), `tools\browser_test.py` (**23/23** trên Edge thật + chụp ảnh slide) |
 
 ---
 
@@ -117,9 +124,9 @@ trong cùng block**, kèm `deviation_kwh` (độ lệch). Nhờ vậy về sau c
 | 4 | Kiến trúc hệ thống | Sơ đồ ở mục 2 | chụp sơ đồ tự vẽ |
 | 5 | Dữ liệu | 720 giờ, 30 ngày, các đỉnh sáng/trưa/tối, nhiễu chuẩn 0.2, seed 42 | biểu đồ đường ở tab **Tổng quan & ML** |
 | 6 | Mô hình ML | RandomForest 100 cây, 4 đặc trưng thời gian, chia 80/20 | ảnh bảng chỉ số MAE/RMSE/R² trong app |
-| 7 | Kết quả ML | Bảng so sánh ở mục 3.1 (RF vs baseline) | biểu đồ "Thực tế và giá trị mô hình khớp" |
-| 8 | Blockchain & PoW | Cấu trúc block, SHA-256, nonce, độ khó | bảng block ở tab **Đồng thuận PoW** (có cột nonce, hash) |
-| 9 | Chống giả mạo | Kịch bản 1 và 2 ở mục 3.2 | ảnh đỏ "KHÔNG hợp lệ" và ảnh kết luận đồng thuận |
+| 7 | Kết quả ML | Bảng so sánh ở mục 3.1 (RF vs baseline, cùng tập kiểm tra) | ảnh bảng **"So sánh mô hình trên cùng tập kiểm tra"** ở tab Tổng quan & ML |
+| 8 | Blockchain & PoW | Cấu trúc block, SHA-256, nonce, độ khó | bảng block ở tab **Đồng thuận PoW** (có cột nonce, difficulty, hash) |
+| 9 | Chống giả mạo | Kịch bản 1 và 2 ở mục 3.2 | ảnh `anh-demo/04-phat-hien-sua-du-lieu.png` (thẻ Block #0 lệch hash) và `anh-demo/06-tan-cong-51.png` (hai chuỗi + kết luận) |
 | 10 | Demo trực tiếp | Kịch bản ở `KICH-BAN-DEMO.md` | — |
 | 11 | Hạn chế | Xem mục 5 bên dưới (nói thẳng, đây là điểm cộng) | — |
 | 12 | Kết luận & hướng phát triển | Chữ ký số ECDSA, mạng nhiều nút P2P, dữ liệu công tơ thật | — |

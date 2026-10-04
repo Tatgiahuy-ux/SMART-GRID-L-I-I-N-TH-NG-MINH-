@@ -13,3 +13,6 @@ logs/
 # Bản clone repo GitHub cũ của nhóm nằm lồng trong project (có .git riêng).
 # Không commit vào repo này để tránh tạo gitlink/submodule hỏng.
 SMART-GRID-L-I-I-N-TH-NG-MINH-/
+
+# Thư mục tạm của Playwright khi chạy kiểm thử trình duyệt
+.pw-tmp/

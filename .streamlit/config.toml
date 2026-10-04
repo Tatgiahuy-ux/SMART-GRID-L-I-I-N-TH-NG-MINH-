@@ -2,6 +2,10 @@
 #
 # File này KHÔNG chứa secret nên được commit vào git. Secret (nếu sau này có) phải để ở
 # .streamlit/secrets.toml — file đó đã bị .gitignore chặn.
+#
+# Giao diện hướng "bảng điều khiển kỹ thuật": nền sáng, chữ đậm rõ, một màu nhấn xanh
+# dương, bo góc nhỏ, không gradient/glow. Mọi màu sắc và kiểu chữ đặt ở đây (không nhúng
+# CSS trong app.py) để Streamlit áp dụng nhất quán cho mọi thành phần.
 
 [server]
 # Mục 8 – giới hạn dung lượng upload: 5 MB (mặc định của Streamlit là 200 MB).
@@ -23,43 +27,70 @@ xsrfCookieSameSite = "lax"
 #   streamlit run app.py --client.showErrorDetails=full
 showErrorDetails = "none"
 
+# Bản demo không cần nút "Deploy" và các tuỳ chọn phát triển trên thanh công cụ.
+# Khi cần rerun/clear cache bằng menu, đổi thành "developer" (hoặc bấm phím R để rerun).
+toolbarMode = "minimal"
+
 [browser]
 # Không gửi thống kê sử dụng ra ngoài.
 gatherUsageStats = false
 
 [theme]
-# Dark operations dashboard: neutral navy surfaces with an energy-green action color.
-base = "dark"
-primaryColor = "#22C55E"
-backgroundColor = "#0F172A"
-secondaryBackgroundColor = "#182235"
-textColor = "#F8FAFC"
-linkColor = "#86EFAC"
-borderColor = "#475569"
-font = "sans-serif"
-headingFont = "sans-serif"
-baseRadius = "medium"
-buttonRadius = "medium"
+base = "light"
+
+# Màu nhấn: xanh dương kỹ thuật, đủ đậm để chữ trắng trên nút đọc được (WCAG AA).
+primaryColor = "#1D4ED8"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F5F7FA"
+textColor = "#1F2933"
+linkColor = "#1D4ED8"
+borderColor = "#D5DBE3"
+
+# Khối mã / hash: nền xám nhạt, chữ đen, không dùng màu neon.
+codeBackgroundColor = "#F1F5F9"
+codeTextColor = "#0F172A"
+codeFont = "monospace"
+codeFontSize = "0.82rem"
+
+# Bo góc nhỏ để trông như bảng điều khiển, không phải thẻ trang trí.
+baseRadius = "small"
+buttonRadius = "small"
 showWidgetBorder = true
 showSidebarBorder = true
-greenColor = "#22C55E"
-greenBackgroundColor = "#143522"
-greenTextColor = "#86EFAC"
-redColor = "#F87171"
-redBackgroundColor = "#3A1D29"
-redTextColor = "#FCA5A5"
-orangeColor = "#F59E0B"
-orangeBackgroundColor = "#3A2A12"
-orangeTextColor = "#FCD34D"
-blueColor = "#60A5FA"
-grayColor = "#94A3B8"
-chartCategoricalColors = ["#22C55E", "#60A5FA", "#F59E0B", "#A78BFA", "#F87171"]
-dataframeHeaderBackgroundColor = "#202B40"
-dataframeHeaderTextColor = "#F8FAFC"
+
+# Kiểu chữ: một font sans duy nhất, tiêu đề vừa phải (không tiêu đề khổng lồ).
+font = "sans-serif"
+headingFont = "sans-serif"
+baseFontSize = 15
+baseFontWeight = 400
+headingFontSizes = ["26px", "20px", "18px", "16px", "15px", "13px"]
+headingFontWeights = [700, 600, 600, 600, 600, 600]
+linkUnderline = false
+
+# Màu biểu đồ: xanh dương là chuỗi chính, các chuỗi còn lại đủ tương phản trên nền sáng.
+chartCategoricalColors = ["#1D4ED8", "#0F766E", "#B45309", "#7C3AED", "#B91C1C", "#475569"]
+
+# Màu ngữ nghĩa cho trạng thái hợp lệ / bị sửa / cảnh báo.
+greenColor = "#15803D"
+greenBackgroundColor = "#E8F5EE"
+greenTextColor = "#14532D"
+redColor = "#B91C1C"
+redBackgroundColor = "#FDECEC"
+redTextColor = "#7F1D1D"
+orangeColor = "#B45309"
+orangeBackgroundColor = "#FDF3E3"
+orangeTextColor = "#7C2D12"
+blueColor = "#1D4ED8"
+grayColor = "#64748B"
+
+# Bảng dữ liệu: header xám nhạt, chữ đậm để đọc số liệu lâu không mỏi mắt.
+dataframeHeaderBackgroundColor = "#EEF2F7"
+dataframeHeaderTextColor = "#1F2933"
+dataframeBorderColor = "#D5DBE3"
 
 [theme.sidebar]
-backgroundColor = "#111C31"
-secondaryBackgroundColor = "#182235"
-textColor = "#F8FAFC"
-borderColor = "#334155"
-primaryColor = "#22C55E"
+backgroundColor = "#F7F9FC"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#1F2933"
+borderColor = "#D5DBE3"
+primaryColor = "#1D4ED8"

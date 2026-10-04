@@ -28,7 +28,13 @@ MAX_DIFFICULTY = 4
 
 
 def _parse_timestamp(recorded_time: str) -> float:
-    """Đổi ``recorded_time`` sang epoch giây; nếu không phân tích được thì lấy giờ hiện tại."""
+    """Đổi ``recorded_time`` sang epoch giây; nếu không phân tích được thì lấy giờ hiện tại.
+
+    Ghi chú: ``pandas.Timestamp`` coi mốc thời gian **không có múi giờ** là UTC (khác với
+    ``datetime.timestamp()`` vốn hiểu theo giờ địa phương), nên kết quả đào khối — nonce,
+    hash — giống nhau trên mọi máy. Đừng đổi sang ``datetime`` nếu không muốn số nonce
+    trong báo cáo/slide thay đổi theo múi giờ của máy demo.
+    """
     try:
         stamp = pd.Timestamp(recorded_time)
     except (ValueError, TypeError):
@@ -176,6 +182,11 @@ class ProofOfWorkChain:
         for position, block in enumerate(self.blocks):
             if block.index != position:
                 return f"Block #{block.index} sai vị trí (mong đợi #{position})."
+            if block.difficulty != self.difficulty:
+                return (
+                    f"Block #{block.index} có độ khó {block.difficulty}, "
+                    f"không khớp độ khó chuỗi {self.difficulty}."
+                )
             if block.previous_hash != previous_hash:
                 return (
                     f"Chuỗi đứt gãy: Block #{block.index} trỏ tới hash không khớp khối trước."
@@ -185,6 +196,8 @@ class ProofOfWorkChain:
             )
             if block.hash != expected:
                 return f"Dữ liệu Block #{block.index} đã bị thay đổi so với hash đã đào."
+            if not block.hash.startswith("0" * self.difficulty):
+                return f"Block #{block.index} có hash không đạt độ khó {self.difficulty}."
             previous_hash = block.hash
         return None
 
@@ -217,9 +230,13 @@ class ProofOfWorkChain:
         """Kẻ tấn công sửa payload rồi **đào lại** để dựng nhánh riêng (private fork).
 
         Nhánh của kẻ tấn công giữ nguyên các khối trước ``index``, thay payload tại
-        ``index`` rồi đào lại từ đó cho tới khi **bằng độ dài chuỗi trung thực cộng
-        ``extra_blocks``**. Vì vậy ``extra_blocks=0`` là hòa tổng công (nút trung thực
-        thắng theo luật), còn ``extra_blocks>=1`` mô phỏng tấn công 51%.
+        ``index``, rồi **đào lại đúng những khối còn lại của chuỗi trung thực** (giữ nguyên
+        ``index``/``timestamp``/payload, chỉ khác hash vì ``previous_hash`` đã đổi). Sau đó
+        mới đào thêm ``extra_blocks`` khối mới để giành ưu thế tổng công.
+
+        Vì vậy ``extra_blocks=0`` cho ra nhánh **cùng độ dài, cùng tổng công** với chuỗi
+        trung thực (hòa → nút trung thực thắng theo luật), còn ``extra_blocks>=1`` mô phỏng
+        tấn công 51%: nhánh tấn công nặng hơn nên được chọn.
 
         Chuỗi trả về vẫn hợp lệ về mặt hash – cho thấy chỉ kiểm tra hash là không đủ,
         phải dùng luật đồng thuận theo tổng công.
@@ -239,6 +256,10 @@ class ProofOfWorkChain:
         attacker.blocks.append(
             attacker._mine(payload, index=victim.index, timestamp=victim.timestamp)
         )
+
+        # Đào lại phần đuôi của chuỗi trung thực với đúng dữ liệu gốc (không bịa bản ghi).
+        for block in self.blocks[index + 1 :]:
+            attacker._remine_clone(block)
 
         target_length = len(self.blocks) + extra_blocks
         offset = 1
@@ -263,11 +284,21 @@ class ProofOfWorkChain:
             )
         )
 
+    def _remine_clone(self, block: ProofBlock) -> ProofBlock:
+        """Đào lại một khối của chuỗi trung thực với **đúng nội dung gốc** (nhánh tấn công).
+
+        Khác ``_append_clone`` (chép nguyên hash cũ): hàm này tính hash mới trên
+        ``previous_hash`` của nhánh tấn công, nên nhánh vẫn hợp lệ về mặt hash.
+        """
+        remined = self._mine(dict(block.payload), index=block.index, timestamp=block.timestamp)
+        self.blocks.append(remined)
+        return remined
+
     def _mine_attacker_block(self, offset: int, base_timestamp: float) -> ProofBlock:
         payload = {
             "consumer_id": "ATTACKER",
             "recorded_time": f"khối tấn công #{offset}",
-            "note": "Kẻ tấn công đào thêm để giành ưu thế tổng công.",
+            "note": "Kẻ tấn công đào thêm để giành ưu thế tổng công (mô phỏng).",
         }
         block = self._mine(payload, timestamp=base_timestamp + offset * 3600.0)
         self.blocks.append(block)
@@ -292,13 +323,23 @@ class ProofOfWorkChain:
         return sum(block.nonce for block in self.blocks)
 
     @property
+    def total_attempts(self) -> int:
+        """Tổng số lần băm thực tế đã thực hiện.
+
+        ``_mine`` băm thử ở ``nonce = 0`` rồi mới tăng dần, nên mỗi khối tốn đúng
+        ``nonce + 1`` phép băm. Dùng giá trị này để tính tốc độ băm cho chính xác.
+        """
+        return sum(block.nonce + 1 for block in self.blocks)
+
+    @property
     def total_mine_seconds(self) -> float:
         return sum(block.mine_seconds for block in self.blocks)
 
     @property
     def hash_rate(self) -> float:
+        """Tốc độ băm thực đo: số phép băm / tổng thời gian đào (H/s)."""
         elapsed = self.total_mine_seconds
-        return self.total_nonce / elapsed if elapsed > 0 else 0.0
+        return self.total_attempts / elapsed if elapsed > 0 else 0.0
 
     @staticmethod
     def resolve_conflict(chains: Sequence["ProofOfWorkChain"]) -> tuple["ProofOfWorkChain | None", str]:
@@ -367,6 +408,7 @@ class ProofOfWorkChain:
             "error": self.validation_error(),
             "cumulative_work": self.cumulative_work,
             "total_nonce": self.total_nonce,
+            "total_attempts": self.total_attempts,
             "total_mine_seconds": round(self.total_mine_seconds, 3),
             "hash_rate": round(self.hash_rate, 1),
         }

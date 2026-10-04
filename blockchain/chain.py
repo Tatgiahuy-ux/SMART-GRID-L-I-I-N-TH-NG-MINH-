@@ -1,4 +1,8 @@
-"""Small hash chain for the classroom integration demo."""
+"""Chuỗi hash SHA-256 phát hiện sửa đổi dữ liệu (phần "Blockchain / Hash" của demo).
+
+Mỗi block lưu một bản ghi điện năng kèm ``previous_hash`` của block trước. Sửa payload mà
+không đào lại thì hash không còn khớp → ``is_valid()`` trả ``False``.
+"""
 
 from dataclasses import dataclass
 import hashlib
@@ -17,7 +21,10 @@ class Block:
 
 
 class IntegrityChain:
-    """Minimal local chain; replace or extend only when the Blockchain module arrives."""
+    """Chuỗi block tối giản chỉ để kiểm tra toàn vẹn (không có nonce/đồng thuận).
+
+    Phần đào khối và luật đồng thuận nằm ở ``blockchain/consensus.py``.
+    """
 
     def __init__(self) -> None:
         self.blocks: list[Block] = []
@@ -76,15 +83,22 @@ class IntegrityChain:
         )
 
     def is_valid(self) -> bool:
+        return self.invalid_index() is None
+
+    def invalid_index(self) -> int | None:
+        """Vị trí block đầu tiên không hợp lệ; ``None`` nếu cả chuỗi hợp lệ.
+
+        Dùng cho giao diện: chỉ rõ block nào bị lệch hash hoặc đứt liên kết, thay vì chỉ
+        báo "chuỗi sai".
+        """
         previous_hash = "0" * 64
         for index, block in enumerate(self.blocks):
             if block.index != index or block.previous_hash != previous_hash:
-                return False
-            expected = self._hash_block(block)
-            if block.hash != expected:
-                return False
+                return index
+            if block.hash != self._hash_block(block):
+                return index
             previous_hash = block.hash
-        return True
+        return None
 
     @staticmethod
     def _hash_block(block: Block) -> str:

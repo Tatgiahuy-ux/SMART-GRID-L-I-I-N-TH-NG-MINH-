@@ -222,8 +222,8 @@ này thành bắt buộc:
 
 ## 5. Bảng kiểm nhanh trước khi nộp/bảo vệ
 
-- [ ] `.\\.venv\\Scripts\\python.exe tools\\smoke_test.py` → **14/14 đạt** (có 5 kiểm tra bảo mật).
-- [ ] `.\\.venv\\Scripts\\python.exe tools\\ui_test.py` → **9/9 đạt**.
+- [ ] `.\\.venv\\Scripts\\python.exe tools\\smoke_test.py` → **33/33 đạt** (trong đó có 8 kiểm tra bảo mật đầu vào).
+- [ ] `.\\.venv\\Scripts\\python.exe tools\\ui_test.py` → **21/21 đạt**.
 - [ ] Thử upload 1 file `.txt` và 1 file ~6 MB → bị chặn kèm thông báo tiếng Việt dễ hiểu.
 - [ ] Làm lỗi cố ý (ví dụ CSV sai định dạng) → màn hình **không** hiện traceback/đường dẫn file.
 - [ ] `git status` không thấy `.streamlit/secrets.toml` (và file này không tồn tại).
