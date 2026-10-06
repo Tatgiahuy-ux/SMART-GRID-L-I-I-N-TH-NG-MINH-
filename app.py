@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import re
 
+import altair as alt
 import pandas as pd
 import streamlit as st
 
@@ -41,13 +42,9 @@ LIVE_DIFFICULTY = 3
 CONSUMER_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,32}$")
 
 
-def render_header() -> None:
+def render_header():
     st.title("Hệ thống giám sát và dự đoán phụ tải điện")
-    st.markdown("Đề tài 17 – Smart Grid · Machine Learning kết hợp Blockchain")
-    st.write(
-        "Dự đoán điện tiêu thụ theo giờ bằng RandomForest. Số liệu được ghi vào chuỗi "
-        "khối để phát hiện việc sửa số."
-    )
+    return st.empty()
 
 
 @st.cache_data
@@ -64,6 +61,30 @@ def _short_hash(value: str, head: int = 10, tail: int = 6) -> str:
     if len(value) <= head + tail + 1:
         return value
     return f"{value[:head]}…{value[-tail:]}"
+
+
+def _block_label(index: int) -> str:
+    return "Genesis" if index == 0 else f"#{index}"
+
+
+def _display_recorded_time(value) -> str:
+    try:
+        return pd.Timestamp(value).strftime("%d/%m %H:%M")
+    except (ValueError, TypeError):
+        return str(value)
+
+
+def _kwh(value) -> str:
+    if value is None:
+        return "—"
+    try:
+        return f"{float(value):.2f}"
+    except (TypeError, ValueError):
+        return str(value)
+
+
+def _display_reason(reason: str) -> str:
+    return reason.replace("tổng công", "tổng sức đào").replace(" → ", ": ")
 
 
 def build_mining_records(
@@ -128,6 +149,7 @@ def render_overview(
     model_choice: str,
     show_saved_metrics: bool,
     saved: dict | None,
+    default_dataset: bool,
 ) -> None:
     forest_metrics = show_saved_metrics and model_choice != MODE_LINEAR
     if model_choice == MODE_LINEAR:
@@ -139,30 +161,27 @@ def render_overview(
 
     values = (
         f"{len(data):,}",
-        "—" if mae is None else f"{mae:.2f}",
-        "—" if rmse is None else f"{rmse:.2f}",
+        "—" if mae is None else f"{mae:.2f} kWh",
+        "—" if rmse is None else f"{rmse:.2f} kWh",
         "—" if r2 is None else f"{r2:.3f}",
     )
     labels = (
         "Số mẫu dữ liệu",
-        "Sai số trung bình (kWh)",
-        "Sai số có phạt lỗi lớn (kWh)",
+        "Sai số trung bình",
+        "Sai số có phạt lỗi lớn",
         "Độ khớp (R²)",
     )
-    helps = (
-        "Số dòng dữ liệu hợp lệ đang dùng.",
-        "Trung bình mỗi giờ dự đoán lệch bao nhiêu kWh. Càng nhỏ càng tốt.",
-        "Giống sai số trung bình nhưng phạt nặng những lần lệch nhiều.",
-        "Càng gần 1 càng tốt. 0.97 nghĩa là mô hình bắt được khoảng 97% biến động.",
-    )
     for start in range(0, 4, 2):
-        for column, label, value, help_text in zip(
+        for column, label, value in zip(
             st.columns(2),
             labels[start : start + 2],
             values[start : start + 2],
-            helps[start : start + 2],
         ):
-            column.metric(label, value, help=help_text)
+            column.metric(label, value)
+
+    st.markdown(
+        "**Cách đọc:** Sai số trung bình càng nhỏ càng tốt; độ khớp R² càng gần 1 càng tốt."
+    )
 
     if model_choice != MODE_LINEAR and not forest_metrics:
         st.info("Chưa có chỉ số đánh giá cho bộ dữ liệu này.")
@@ -171,14 +190,41 @@ def render_overview(
         rows = int(saved.get("n_test", 144)) if forest_metrics else min(168, len(data))
         rows = min(rows, len(data))
         st.subheader(f"Điện năng thực tế và dự đoán, {rows // 24} ngày cuối")
-        chart = pd.DataFrame(
+        chart_data = pd.DataFrame(
             {
-                "Thực tế (kWh)": data["consumption_kwh"].tail(rows).to_numpy(),
-                "Dự đoán (kWh)": forecast.fitted[-rows:],
-            },
-            index=pd.DatetimeIndex(data["timestamp"].tail(rows)),
+                "Thời gian": data["timestamp"].tail(rows).to_numpy(),
+                "Thực tế": data["consumption_kwh"].tail(rows).to_numpy(),
+                "Dự đoán": forecast.fitted[-rows:],
+            }
+        ).melt("Thời gian", var_name="Chuỗi", value_name="Điện năng (kWh)")
+        series = ["Thực tế", "Dự đoán"]
+        chart = (
+            alt.Chart(chart_data)
+            .mark_line(strokeWidth=2.2)
+            .encode(
+                x=alt.X("Thời gian:T", title=None),
+                y=alt.Y("Điện năng (kWh):Q", scale=alt.Scale(zero=False)),
+                color=alt.Color(
+                    "Chuỗi:N",
+                    scale=alt.Scale(
+                        domain=series,
+                        range=["#4A4038", "#9A5B2E"],
+                    ),
+                    legend=alt.Legend(title=None),
+                ),
+                strokeDash=alt.StrokeDash(
+                    "Chuỗi:N",
+                    scale=alt.Scale(domain=series, range=[[1, 0], [6, 4]]),
+                    legend=alt.Legend(title=None),
+                ),
+                tooltip=[
+                    alt.Tooltip("Thời gian:T", title="Thời gian"),
+                    alt.Tooltip("Chuỗi:N", title="Chuỗi"),
+                    alt.Tooltip("Điện năng (kWh):Q", format=".2f"),
+                ],
+            )
         )
-        st.line_chart(
+        st.altair_chart(
             chart,
             height=340,
             alt="So sánh mức dùng điện thực tế và dự đoán theo giờ",
@@ -192,8 +238,49 @@ def render_overview(
         else:
             st.markdown("Mô hình đã học chính dữ liệu này nên số trông đẹp hơn thực tế.")
 
+    st.subheader("Dự báo 24 giờ tới")
+    future_hours = [pd.Timestamp(value) for value in forecast.future_timestamps]
+    predictions = [float(value) for value in forecast.predictions]
+    st.markdown(
+        f"Từ {future_hours[0].strftime('%d/%m %H:00')} "
+        f"đến {future_hours[-1].strftime('%d/%m %H:00')}."
+    )
+    st.bar_chart(
+        pd.DataFrame(
+            {"Điện năng (kWh)": predictions},
+            index=pd.to_datetime(forecast.future_timestamps),
+        ),
+        color="#9A5B2E",
+        y_label="Điện năng (kWh)",
+        height=260,
+    )
+    peak_index = predictions.index(max(predictions))
+    low_index = predictions.index(min(predictions))
+    peak_column, low_column = st.columns(2)
+    peak_column.metric(
+        f"Giờ dùng nhiều nhất: {future_hours[peak_index].strftime('%H')}:00",
+        f"{predictions[peak_index]:.2f} kWh",
+    )
+    low_column.metric(
+        f"Giờ dùng ít nhất: {future_hours[low_index].strftime('%H')}:00",
+        f"{predictions[low_index]:.2f} kWh",
+    )
+    st.markdown(
+        "Mô hình chỉ học từ dữ liệu có sẵn nên chỉ đáng tin cho các giờ ngay sau đó."
+    )
+    if model_choice != MODE_LINEAR and not default_dataset:
+        st.markdown(
+            "RandomForest đã học sẵn từ bộ dữ liệu mặc định. "
+            "File bạn tải lên chỉ quyết định mốc thời gian dự báo, "
+            "không đổi hình dạng đường dự báo."
+        )
+
     if show_saved_metrics and saved:
-        with st.expander("So sánh với phương pháp đường thẳng đơn giản", key="t1_compare"):
+        with st.expander(
+            "So sánh với phương pháp đường thẳng đơn giản",
+            expanded=False,
+            key="t1_compare",
+        ):
             comparison = pd.DataFrame(
                 [
                     {
@@ -230,7 +317,9 @@ def render_overview(
                     "R² âm nghĩa là phương pháp đó dự đoán tệ hơn việc lấy số trung bình."
                 )
 
-    with st.expander("Xem dữ liệu huấn luyện", key="t1_training_data"):
+    with st.expander(
+        "Xem dữ liệu huấn luyện", expanded=False, key="t1_training_data"
+    ):
         st.dataframe(data, hide_index=True, alt="Dữ liệu điện đã làm sạch")
         st.download_button(
             "Tải dữ liệu đã làm sạch",
@@ -268,7 +357,9 @@ def render_prediction(forecast: ForecastResult) -> None:
             help="Số đọc từ đồng hồ điện. Nhập giả lập cho buổi demo.",
         )
 
-    st.info("Bước 1: bấm Dự đoán. Bước 2: nhập số thực tế rồi bấm Ghi vào Blockchain.")
+    st.markdown(
+        "**Bước 1:** bấm Dự đoán. **Bước 2:** nhập số thực tế rồi bấm Ghi vào Blockchain."
+    )
     if st.button("Dự đoán", type="primary", key="t2_predict"):
         idx = forecast.future_timestamps.index(hour_iso)
         st.session_state["prediction"] = {
@@ -289,6 +380,7 @@ def render_prediction(forecast: ForecastResult) -> None:
         if forecast.fallback_reason:
             st.warning(f"Đang dùng phương pháp dự phòng: {forecast.fallback_reason}")
 
+    write_note = st.empty()
     disabled = prediction is None or prediction["written"]
     if st.button("Ghi vào Blockchain", key="t2_write", disabled=disabled):
         if not CONSUMER_ID_PATTERN.fullmatch(consumer_id):
@@ -314,11 +406,19 @@ def render_prediction(forecast: ForecastResult) -> None:
                 st.error(safe_error(exc, "Không thể ghi dữ liệu vào Blockchain."))
             else:
                 prediction["written"] = True
-                st.success(
-                    f"Đã ghi Block #{block.index}: thực tế {actual:.2f} kWh, "
-                    f"dự đoán {prediction['predicted']:.2f} kWh, số lần thử "
-                    f"{block.nonce:,}. Mở tab Blockchain để xem."
-                )
+                prediction["written_block"] = block.index
+                prediction["written_actual"] = float(actual)
+                prediction["written_predicted"] = float(prediction["predicted"])
+                prediction["written_nonce"] = int(block.nonce)
+
+    if prediction is not None and prediction.get("written_block") is not None:
+        write_note.markdown(
+            f"Đã ghi vào Block #{prediction['written_block']}: "
+            f"thực tế {prediction['written_actual']:.2f} kWh, "
+            f"dự đoán {prediction['written_predicted']:.2f} kWh, "
+            f"số lần thử {prediction['written_nonce']:,}. "
+            "Muốn ghi tiếp, chọn giờ khác rồi bấm Dự đoán."
+        )
 
 
 def _block_frame(chain: ProofOfWorkChain) -> pd.DataFrame:
@@ -335,15 +435,13 @@ def _block_frame(chain: ProofOfWorkChain) -> pd.DataFrame:
             "previous_hash": "Mã băm khối trước",
         }
     )
-    frame["Block"] = frame["Block"].map(
-        lambda index: "Block khởi tạo (Genesis)" if index == 0 else f"Block #{index}"
-    )
+    frame["Block"] = frame["Block"].map(_block_label)
+    frame["Thời điểm ghi"] = frame["Thời điểm ghi"].map(_display_recorded_time)
     frame["Mã băm (hash)"] = frame["Mã băm (hash)"].map(_short_hash)
     return frame[
         [
             "Block",
             "Thời điểm ghi",
-            "Mã đồng hồ",
             "Thực tế (kWh)",
             "Dự đoán (kWh)",
             "Số lần thử (nonce)",
@@ -352,26 +450,64 @@ def _block_frame(chain: ProofOfWorkChain) -> pd.DataFrame:
     ]
 
 
+def _block_status(chain: ProofOfWorkChain, position: int) -> str:
+    block = chain.blocks[position]
+    expected_hash = ProofOfWorkChain.calculate_hash(
+        block.index, block.timestamp, block.payload, block.previous_hash, block.nonce
+    )
+    expected_previous = (
+        GENESIS_PREVIOUS_HASH if position == 0 else chain.blocks[position - 1].hash
+    )
+    content_ok = block.hash == expected_hash
+    link_ok = block.previous_hash == expected_previous
+    work_ok = block.hash.startswith("0" * block.difficulty)
+    if not link_ok:
+        return "Liên kết đứt"
+    if not content_ok or not work_ok:
+        return "Nội dung bị sửa"
+    return "Hợp lệ"
+
+
 def _integrity_frame(chain: ProofOfWorkChain) -> pd.DataFrame:
-    rows = []
-    for position, block in enumerate(chain.blocks):
-        expected_hash = ProofOfWorkChain.calculate_hash(
-            block.index, block.timestamp, block.payload, block.previous_hash, block.nonce
-        )
-        expected_previous = (
-            GENESIS_PREVIOUS_HASH if position == 0 else chain.blocks[position - 1].hash
-        )
-        content_ok = block.hash == expected_hash
-        link_ok = block.previous_hash == expected_previous
-        work_ok = block.hash.startswith("0" * block.difficulty)
-        if not link_ok:
-            result = "Liên kết đứt"
-        elif not content_ok or not work_ok:
-            result = "Nội dung bị sửa"
-        else:
-            result = "Hợp lệ"
-        rows.append({"Block": block.index, "Kết quả": result})
+    rows = [
+        {"Block": _block_label(block.index), "Kết quả": _block_status(chain, position)}
+        for position, block in enumerate(chain.blocks)
+    ]
     return pd.DataFrame(rows)
+
+
+def _render_chain_cards(chain: ProofOfWorkChain) -> None:
+    total = len(chain.blocks)
+    last_blocks = chain.blocks[-6:]
+    start = total - len(last_blocks)
+    st.subheader("Chuỗi khối", divider="orange")
+    if total > 6:
+        st.markdown(
+            f"Đang hiện 6 block cuối trong {total} block. "
+            "Xem đủ trong bảng chi tiết bên dưới."
+        )
+    for row_start in range(0, len(last_blocks), 2):
+        columns = st.columns(2)
+        for offset, column in enumerate(columns):
+            position = start + row_start + offset
+            if position >= total:
+                continue
+            block = chain.blocks[position]
+            title = "Genesis" if block.index == 0 else f"Block #{block.index}"
+            with column, st.container(border=True):
+                st.markdown(f"**{title}**")
+                if block.index != 0:
+                    st.markdown(
+                        f"Thực tế {_kwh(block.payload.get('actual_usage_kwh'))} kWh · "
+                        f"Dự đoán {_kwh(block.payload.get('predicted_usage_kwh'))} kWh"
+                    )
+                st.markdown(f"Mã băm: `{_short_hash(block.hash)}`")
+                st.markdown(f"Khối trước: `{_short_hash(block.previous_hash)}`")
+                status = _block_status(chain, position)
+                if status == "Hợp lệ":
+                    st.markdown(":green[Hợp lệ]")
+                else:
+                    st.error(status)
 
 
 def render_blockchain() -> None:
@@ -393,32 +529,34 @@ def render_blockchain() -> None:
     if tamper is not None:
         st.warning(
             f"Đang giả lập sửa trộm Block #{tamper['index']}: "
-            f"{tamper['original']} kWh thành {tamper['value']} kWh."
+            f"{_kwh(tamper['original'])} kWh thành {_kwh(tamper['value'])} kWh."
         )
 
-    st.dataframe(
-        _block_frame(shown),
-        hide_index=True,
-        column_config={
-            "Số lần thử (nonce)": st.column_config.NumberColumn(
-                help="Máy thử nhiều con số cho đến khi mã băm đạt yêu cầu."
-            ),
-            "Mã băm (hash)": st.column_config.TextColumn(
-                help="Dấu niêm phong đổi hoàn toàn khi nội dung block thay đổi."
-            ),
-        },
-        alt="Chuỗi khối điện năng đang hiển thị",
-    )
+    _render_chain_cards(shown)
 
-    check_column, clear_column, download_column = st.columns(3)
+    with st.expander("Bảng chi tiết các block", expanded=False):
+        st.dataframe(
+            _block_frame(shown),
+            hide_index=True,
+            column_config={
+                "Thực tế (kWh)": st.column_config.NumberColumn(format="%.2f"),
+                "Dự đoán (kWh)": st.column_config.NumberColumn(format="%.2f"),
+                "Số lần thử (nonce)": st.column_config.NumberColumn(
+                    help="Máy thử nhiều con số cho đến khi mã băm đạt yêu cầu."
+                ),
+                "Mã băm (hash)": st.column_config.TextColumn(
+                    help="Dấu niêm phong đổi hoàn toàn khi nội dung block thay đổi."
+                ),
+            },
+            alt="Chuỗi khối điện năng đang hiển thị",
+        )
+
+    confirm_clear = st.checkbox(
+        "Tôi xác nhận xóa toàn bộ dữ liệu demo", key="t3_confirm_clear"
+    )
+    check_column, download_column, clear_column, _ = st.columns([3, 3, 3, 2])
     with check_column:
         check = st.button("Kiểm tra toàn vẹn", key="t3_check")
-    with clear_column:
-        if st.button("Xóa dữ liệu demo", key="t3_clear"):
-            st.session_state["chain"] = ProofOfWorkChain(difficulty=LIVE_DIFFICULTY)
-            st.session_state["prediction"] = None
-            st.session_state["tamper"] = None
-            st.rerun()
     with download_column:
         st.download_button(
             "Tải Blockchain JSON",
@@ -429,6 +567,12 @@ def render_blockchain() -> None:
             mime="application/json",
             key="t3_download",
         )
+    with clear_column:
+        if st.button("Xóa dữ liệu demo", key="t3_clear", disabled=not confirm_clear):
+            st.session_state["chain"] = ProofOfWorkChain(difficulty=LIVE_DIFFICULTY)
+            st.session_state["prediction"] = None
+            st.session_state["tamper"] = None
+            st.rerun()
     if check:
         st.dataframe(
             _integrity_frame(shown),
@@ -436,7 +580,7 @@ def render_blockchain() -> None:
             alt="Kết quả kiểm tra từng block",
         )
 
-    st.subheader("Thử sửa trộm", divider=True)
+    st.subheader("Thử sửa trộm", divider="orange")
     st.write("Đổi một số điện đã ghi để xem chuỗi phát hiện thay đổi.")
     candidates = [block.index for block in chain.blocks if "actual_usage_kwh" in block.payload]
     if not candidates:
@@ -455,7 +599,7 @@ def render_blockchain() -> None:
             value=9999.0,
             key="t3_tamper_value",
         )
-        tamper_column, undo_column = st.columns(2)
+        tamper_column, undo_column, _ = st.columns([3, 3, 5])
         with tamper_column:
             if st.button("Sửa trộm block này", key="t3_tamper"):
                 st.session_state["tamper"] = {
@@ -478,7 +622,13 @@ def render_blockchain() -> None:
             st.markdown(
                 "**Block khởi tạo (Genesis)**" if block.index == 0 else f"**Block #{block.index}**"
             )
-            st.json(block.payload)
+            if consumer_id := block.payload.get("consumer_id"):
+                st.markdown(f"**Mã đồng hồ:** `{consumer_id}`")
+            payload_view = {
+                key: _kwh(value) if key.endswith("_kwh") else value
+                for key, value in block.payload.items()
+            }
+            st.json(payload_view)
             st.markdown(f"**Mã băm (hash):** `{block.hash}`")
             st.markdown(f"**Mã băm khối trước:** `{block.previous_hash}`")
             st.markdown(
@@ -502,9 +652,9 @@ def render_chain_card(
         first.metric("Số block", len(chain.blocks))
         second.metric("Tổng sức đào", f"{chain.cumulative_work:,}")
         first.metric("Hợp lệ", "Có" if chain.is_valid() else "Không")
-        second.metric(
-            "Giá trị tại block bị sửa",
-            f"{chain.blocks[target_block].payload.get('actual_usage_kwh', '—')} kWh",
+        st.metric(
+            "Giá trị tại block bị sửa (kWh)",
+            _kwh(chain.blocks[target_block].payload.get("actual_usage_kwh")),
         )
 
 
@@ -561,15 +711,32 @@ def render_consensus(data: pd.DataFrame, forecast: ForecastResult) -> None:
     if winner is None:
         st.error(reason)
     elif winner is honest:
-        st.success(f"Giữ chuỗi trung thực. Số thật {actual} kWh không bị thay.")
+        st.success(f"Giữ chuỗi trung thực. Số thật {_kwh(actual)} kWh không bị thay.")
     else:
         st.error(
-            f"Kẻ tấn công THẮNG. Số giả {sim['forged']} kWh được các nút chấp nhận."
+            f"Kẻ tấn công THẮNG. Số giả {_kwh(sim['forged'])} kWh được các nút chấp nhận."
         )
         st.markdown(
             "Đây là minh họa kẻ tấn công nắm đa số sức đào (tấn công 51%), "
             "không phải mô phỏng đầy đủ."
         )
+
+    st.subheader("So sánh tổng sức đào")
+    st.bar_chart(
+        pd.DataFrame(
+            [[honest.cumulative_work, attacker.cumulative_work]],
+            index=[""],
+            columns=[
+                f"Chuỗi trung thực ({honest.cumulative_work})",
+                f"Chuỗi kẻ tấn công ({attacker.cumulative_work})",
+            ],
+        ),
+        color=["#4A4038", "#9A5B2E"],
+        height=290,
+        stack=False,
+    )
+    if honest.cumulative_work == attacker.cumulative_work:
+        st.markdown(_display_reason(reason))
 
     honest_column, attacker_column = st.columns(2)
     with honest_column:
@@ -609,6 +776,11 @@ def render_consensus(data: pd.DataFrame, forecast: ForecastResult) -> None:
                 ]
             ),
             hide_index=True,
+            column_config={
+                "Giá trị tại block bị sửa (kWh)": st.column_config.NumberColumn(
+                    format="%.2f"
+                ),
+            },
             alt="So sánh sức đào của hai chuỗi",
         )
 
@@ -616,8 +788,9 @@ def render_consensus(data: pd.DataFrame, forecast: ForecastResult) -> None:
         label for label, blocks in strengths.items() if blocks == sim["extra_blocks"]
     )
     st.markdown(
-        f"Kết quả ứng với: độ khó {sim['difficulty']}, sức đào {strength_label}, "
-        f"giá giả {sim['forged']}."
+        f"Kết quả ứng với: độ khó {sim['difficulty']}; "
+        f"kẻ tấn công {strength_label}; "
+        f"giá giả {sim['forged']:.2f} kWh."
     )
 
 
@@ -654,7 +827,7 @@ def main() -> None:
     st.session_state.setdefault("tamper", None)
     st.session_state.setdefault("sim", None)
 
-    render_header()
+    source_line = render_header()
     options = model_options()
     available = [option for option in options if option["available"]]
     unavailable = [option for option in options if not option["available"]]
@@ -688,14 +861,15 @@ def main() -> None:
         st.error(safe_error(exc, "Không thể xử lý dữ liệu đầu vào."))
         st.stop()
 
-    source_label = "file CSV vừa tải lên" if uploaded_file is not None else dataset_label
-    st.markdown(f"Nguồn dữ liệu: {source_label}")
-    saved = load_saved_metrics()
-    show_saved_metrics = (
-        uploaded_file is None
-        and dataset_label == DEFAULT_DATASET_LABEL
-        and saved is not None
+    source_label = (
+        uploaded_file.name
+        if uploaded_file is not None
+        else f"Bộ dữ liệu mẫu {len(data):,} giờ"
     )
+    source_line.markdown(f"Đề tài 17 · Smart Grid · {source_label}")
+    saved = load_saved_metrics()
+    default_dataset = uploaded_file is None and dataset_label == DEFAULT_DATASET_LABEL
+    show_saved_metrics = default_dataset and saved is not None
 
     overview_tab, prediction_tab, blockchain_tab, consensus_tab, guide_tab = st.tabs(
         [
@@ -708,7 +882,9 @@ def main() -> None:
         key="main_tabs",
     )
     with overview_tab:
-        render_overview(data, forecast, model_choice, show_saved_metrics, saved)
+        render_overview(
+            data, forecast, model_choice, show_saved_metrics, saved, default_dataset
+        )
     with prediction_tab:
         render_prediction(forecast)
     with blockchain_tab:

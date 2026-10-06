@@ -3,8 +3,8 @@
 # File này KHÔNG chứa secret nên được commit vào git. Secret (nếu sau này có) phải để ở
 # .streamlit/secrets.toml — file đó đã bị .gitignore chặn.
 #
-# Giao diện hướng "bảng điều khiển kỹ thuật": nền sáng, chữ đậm rõ, một màu nhấn xanh
-# dương, bo góc nhỏ, không gradient/glow. Mọi màu sắc và kiểu chữ đặt ở đây (không nhúng
+# Giao diện hướng "bảng điều khiển kỹ thuật": nền sáng, chữ đậm rõ, một màu nhấn nâu-cam,
+# bo góc nhỏ, không gradient/glow. Mọi màu sắc và kiểu chữ đặt ở đây (không nhúng
 # CSS trong app.py) để Streamlit áp dụng nhất quán cho mọi thành phần.
 
 [server]
@@ -39,16 +39,16 @@ gatherUsageStats = false
 base = "light"
 
 # Màu nhấn nâu cam trên nền giấy sáng.
-primaryColor = "#B45309"
+primaryColor = "#9A5B2E"
 backgroundColor = "#FBFAF7"
 secondaryBackgroundColor = "#F1EEE7"
 textColor = "#1C1917"
-linkColor = "#1D4ED8"
-borderColor = "#D5DBE3"
+linkColor = "#9A5B2E"
+borderColor = "#E4DED4"
 
-# Khối mã / hash: nền xám nhạt, chữ đen, không dùng màu neon.
-codeBackgroundColor = "#F1F5F9"
-codeTextColor = "#0F172A"
+# Khối mã / hash: nền xám ấm, chữ đậm, không dùng màu neon hay xanh dương.
+codeBackgroundColor = "#EFEAE0"
+codeTextColor = "#3F3833"
 codeFont = "monospace"
 codeFontSize = "0.82rem"
 
@@ -58,17 +58,17 @@ buttonRadius = "small"
 showWidgetBorder = true
 showSidebarBorder = true
 
-# Kiểu chữ: một font sans duy nhất, tiêu đề vừa phải (không tiêu đề khổng lồ).
+# Kiểu chữ: thân bài sans, tiêu đề serif vừa phải (không tiêu đề khổng lồ).
 font = "sans-serif"
-headingFont = "sans-serif"
+headingFont = "serif"
 baseFontSize = 17
 baseFontWeight = 400
 headingFontSizes = ["26px", "20px", "18px", "16px", "15px", "13px"]
 headingFontWeights = [700, 600, 600, 600, 600, 600]
 linkUnderline = false
 
-# Màu biểu đồ: xanh dương là chuỗi chính, các chuỗi còn lại đủ tương phản trên nền sáng.
-chartCategoricalColors = ["#1D4ED8", "#0F766E", "#B45309", "#7C3AED", "#B91C1C", "#475569"]
+# Màu biểu đồ: thực tế là xám đậm ấm, dự đoán dùng màu nhấn nâu-cam.
+chartCategoricalColors = ["#4A4038", "#9A5B2E", "#7A624F", "#B77945", "#6B5A4D", "#C08A5B"]
 
 # Màu ngữ nghĩa cho trạng thái hợp lệ / bị sửa / cảnh báo.
 greenColor = "#15803D"
@@ -77,20 +77,23 @@ greenTextColor = "#14532D"
 redColor = "#B91C1C"
 redBackgroundColor = "#FDECEC"
 redTextColor = "#7F1D1D"
-orangeColor = "#B45309"
+orangeColor = "#9A5B2E"
 orangeBackgroundColor = "#FDF3E3"
 orangeTextColor = "#7C2D12"
-blueColor = "#1D4ED8"
-grayColor = "#64748B"
+# Không dùng màu xanh dương: họ "blue" của Streamlit (nền st.info, đường kẻ...) đưa về tông ấm.
+blueColor = "#9A5B2E"
+blueBackgroundColor = "#FDF3E3"
+blueTextColor = "#7C2D12"
+grayColor = "#756A61"
 
 # Bảng dữ liệu: header xám nhạt, chữ đậm để đọc số liệu lâu không mỏi mắt.
-dataframeHeaderBackgroundColor = "#EEF2F7"
-dataframeHeaderTextColor = "#1F2933"
-dataframeBorderColor = "#D5DBE3"
+dataframeHeaderBackgroundColor = "#EFEAE0"
+dataframeHeaderTextColor = "#3F3833"
+dataframeBorderColor = "#E4DED4"
 
 [theme.sidebar]
-backgroundColor = "#F7F9FC"
-secondaryBackgroundColor = "#FFFFFF"
-textColor = "#1F2933"
-borderColor = "#D5DBE3"
-primaryColor = "#1D4ED8"
+backgroundColor = "#F7F4EE"
+secondaryBackgroundColor = "#EFEAE0"
+textColor = "#3F3833"
+borderColor = "#E4DED4"
+primaryColor = "#9A5B2E"
