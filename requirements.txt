@@ -1,6 +1,6 @@
-pandas>=2.0,<4
-numpy>=1.26,<3
-streamlit>=1.35,<2
-scikit-learn>=1.4,<2
-joblib>=1.3,<2
+streamlit==1.65.0
+scikit-learn==1.9.1
+pandas==3.0.1
+numpy==2.3.5
+joblib==1.6.0
 # matplotlib>=3.8   # tùy chọn: ml/train_model.py xuất biểu đồ ml/evaluation.png
