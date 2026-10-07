@@ -722,8 +722,14 @@ def render_consensus(data: pd.DataFrame, forecast: ForecastResult) -> None:
         )
 
     st.subheader("So sánh tổng sức đào")
-    st.bar_chart(
-        pd.DataFrame(
+    from streamlit.elements.lib.built_in_chart_utils import (
+        ChartType,
+        generate_chart,
+    )
+
+    comparison_base = generate_chart(
+        chart_type=ChartType.VERTICAL_BAR,
+        data=pd.DataFrame(
             [[honest.cumulative_work, attacker.cumulative_work]],
             index=[""],
             columns=[
@@ -731,10 +737,23 @@ def render_consensus(data: pd.DataFrame, forecast: ForecastResult) -> None:
                 f"Chuỗi kẻ tấn công ({attacker.cumulative_work})",
             ],
         ),
-        color=["#4A4038", "#9A5B2E"],
+        color_from_user=["#4A4038", "#9A5B2E"],
+        width="stretch",
         height=290,
         stack=False,
+        sort_from_user=True,
     )
+    comparison_chart = comparison_base.encode(
+        y=alt.Y(
+            field=comparison_base.to_dict()["encoding"]["y"]["field"],
+            type="quantitative",
+            stack=False,
+            axis=alt.Axis(grid=True, tickMinStep=1),
+            scale=alt.Scale(zero=True),
+            title="",
+        )
+    )
+    st.altair_chart(comparison_chart, theme="streamlit", width="stretch", height=290)
     if honest.cumulative_work == attacker.cumulative_work:
         st.markdown(_display_reason(reason))
 
