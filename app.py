@@ -200,22 +200,27 @@ def render_overview(
         series = ["Thực tế", "Dự đoán"]
         chart = (
             alt.Chart(chart_data)
-            .mark_line(strokeWidth=2.2)
+            .mark_line()
             .encode(
                 x=alt.X("Thời gian:T", title=None),
-                y=alt.Y("Điện năng (kWh):Q", scale=alt.Scale(zero=False)),
+                y=alt.Y(
+                    "Điện năng (kWh):Q",
+                    title="Điện năng (kWh)",
+                    scale=alt.Scale(zero=True),
+                ),
                 color=alt.Color(
                     "Chuỗi:N",
                     scale=alt.Scale(
                         domain=series,
-                        range=["#4A4038", "#9A5B2E"],
+                        range=["#C08A5B", "#9A5B2E"],
                     ),
-                    legend=alt.Legend(title=None),
+                    legend=alt.Legend(title=None, orient="bottom"),
                 ),
-                strokeDash=alt.StrokeDash(
+                strokeWidth=alt.StrokeWidth(
                     "Chuỗi:N",
-                    scale=alt.Scale(domain=series, range=[[1, 0], [6, 4]]),
-                    legend=alt.Legend(title=None),
+                    sort=series,
+                    scale=alt.Scale(domain=series, range=[1.4, 2.4]),
+                    legend=None,
                 ),
                 tooltip=[
                     alt.Tooltip("Thời gian:T", title="Thời gian"),
@@ -722,38 +727,54 @@ def render_consensus(data: pd.DataFrame, forecast: ForecastResult) -> None:
         )
 
     st.subheader("So sánh tổng sức đào")
-    from streamlit.elements.lib.built_in_chart_utils import (
-        ChartType,
-        generate_chart,
+    comparison_series = ["Chuỗi trung thực", "Chuỗi kẻ tấn công"]
+    comparison_data = pd.DataFrame(
+        {
+            "Chuỗi": comparison_series,
+            "Sức đào": [honest.cumulative_work, attacker.cumulative_work],
+        }
     )
-
-    comparison_base = generate_chart(
-        chart_type=ChartType.VERTICAL_BAR,
-        data=pd.DataFrame(
-            [[honest.cumulative_work, attacker.cumulative_work]],
-            index=[""],
-            columns=[
-                f"Chuỗi trung thực ({honest.cumulative_work})",
-                f"Chuỗi kẻ tấn công ({attacker.cumulative_work})",
-            ],
-        ),
-        color_from_user=["#4A4038", "#9A5B2E"],
-        width="stretch",
-        height=290,
-        stack=False,
-        sort_from_user=True,
-    )
-    comparison_chart = comparison_base.encode(
-        y=alt.Y(
-            field=comparison_base.to_dict()["encoding"]["y"]["field"],
-            type="quantitative",
-            stack=False,
-            axis=alt.Axis(grid=True, tickMinStep=1),
-            scale=alt.Scale(zero=True),
-            title="",
+    comparison_bars = (
+        alt.Chart(comparison_data)
+        .mark_bar()
+        .encode(
+            x=alt.X(
+                "Chuỗi:N",
+                sort=comparison_series,
+                title=None,
+                axis=alt.Axis(labelAngle=0),
+            ),
+            y=alt.Y(
+                "Sức đào:Q",
+                title="Sức đào",
+                scale=alt.Scale(zero=True),
+                axis=alt.Axis(grid=True, tickMinStep=1),
+            ),
+            color=alt.Color(
+                "Chuỗi:N",
+                scale=alt.Scale(
+                    domain=comparison_series,
+                    range=["#4A4038", "#9A5B2E"],
+                ),
+                legend=None,
+            ),
         )
     )
-    st.altair_chart(comparison_chart, theme="streamlit", width="stretch", height=290)
+    comparison_labels = (
+        alt.Chart(comparison_data)
+        .mark_text(dy=-8, baseline="bottom", fontSize=14)
+        .encode(
+            x=alt.X("Chuỗi:N", sort=comparison_series),
+            y=alt.Y("Sức đào:Q"),
+            text=alt.Text("Sức đào:Q"),
+        )
+    )
+    st.altair_chart(
+        comparison_bars + comparison_labels,
+        theme="streamlit",
+        width="stretch",
+        height=290,
+    )
     if honest.cumulative_work == attacker.cumulative_work:
         st.markdown(_display_reason(reason))
 
