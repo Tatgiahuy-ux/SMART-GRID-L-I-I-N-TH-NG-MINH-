@@ -52,6 +52,12 @@ BASE_CSS = """
   [data-testid="stMetricLabel"] { color: #756A61; }
   [data-testid="stMetricLabel"] p, [data-testid="stWidgetLabel"] p { color: #756A61; font-size: 14px; }
   [data-testid="stMetricLabel"] p { white-space: normal; overflow: visible; text-overflow: clip; }
+  /* Hai thẻ kết quả đồng thuận: nhãn giữ đủ hai dòng để số ở hàng dưới thẳng hàng nhau. */
+  .st-key-t4_card_honest [data-testid="stMetricLabel"] p,
+  .st-key-t4_card_attacker [data-testid="stMetricLabel"] p {
+    display: block;
+    min-height: 40px;
+  }
   /* Thẻ trong cùng một hàng cao bằng nhau (thẻ Genesis không thấp hơn thẻ khác). */
   [data-testid="stColumn"] > [data-testid="stVerticalBlock"],
   [data-testid="stColumn"] > [data-testid="stVerticalBlock"] > [data-testid="stLayoutWrapper"],
@@ -802,9 +808,13 @@ def render_blockchain() -> None:
 
 
 def render_chain_card(
-    chain: ProofOfWorkChain, title: str, chosen: bool, target_block: int
+    chain: ProofOfWorkChain,
+    title: str,
+    chosen: bool,
+    target_block: int,
+    key: str,
 ) -> None:
-    with st.container(border=True):
+    with st.container(border=True, key=key):
         st.markdown(f"**{title}**" + (" — được chọn" if chosen else ""))
         first, second = st.columns(2)
         first.metric("Số block", len(chain.blocks))
@@ -941,10 +951,16 @@ def render_consensus(data: pd.DataFrame, forecast: ForecastResult) -> None:
 
     honest_column, attacker_column = st.columns(2)
     with honest_column:
-        render_chain_card(honest, "Chuỗi trung thực", winner is honest, target_block)
+        render_chain_card(
+            honest, "Chuỗi trung thực", winner is honest, target_block, "t4_card_honest"
+        )
     with attacker_column:
         render_chain_card(
-            attacker, "Chuỗi kẻ tấn công", winner is attacker, target_block
+            attacker,
+            "Chuỗi kẻ tấn công",
+            winner is attacker,
+            target_block,
+            "t4_card_attacker",
         )
 
     with st.expander("Chi tiết so sánh", key="t4_details"):
