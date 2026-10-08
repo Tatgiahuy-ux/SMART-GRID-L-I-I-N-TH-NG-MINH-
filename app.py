@@ -51,6 +51,7 @@ BASE_CSS = """
   [data-testid="stHeading"]:has(h3) { margin: 32px 0 8px; }
   [data-testid="stMetricLabel"] { color: #756A61; }
   [data-testid="stMetricLabel"] p, [data-testid="stWidgetLabel"] p { color: #756A61; font-size: 14px; }
+  [data-testid="stMetricLabel"] p { white-space: normal; overflow: visible; text-overflow: clip; }
   /* Thẻ trong cùng một hàng cao bằng nhau (thẻ Genesis không thấp hơn thẻ khác). */
   [data-testid="stColumn"] > [data-testid="stVerticalBlock"],
   [data-testid="stColumn"] > [data-testid="stVerticalBlock"] > [data-testid="stLayoutWrapper"],
@@ -763,7 +764,7 @@ def render_chain_card(
         first.metric("Số block", len(chain.blocks))
         second.metric("Tổng sức đào", f"{chain.cumulative_work:,}")
         first.metric("Hợp lệ", "Có" if chain.is_valid() else "Không")
-        st.metric(
+        second.metric(
             "Giá trị tại block bị sửa (kWh)",
             _kwh(chain.blocks[target_block].payload.get("actual_usage_kwh")),
         )
