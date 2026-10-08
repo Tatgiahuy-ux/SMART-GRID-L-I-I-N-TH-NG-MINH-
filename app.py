@@ -228,6 +228,7 @@ def render_overview(
                     alt.Tooltip("Điện năng (kWh):Q", format=".2f"),
                 ],
             )
+            .interactive()
         )
         st.altair_chart(
             chart,
@@ -770,7 +771,7 @@ def render_consensus(data: pd.DataFrame, forecast: ForecastResult) -> None:
         )
     )
     st.altair_chart(
-        comparison_bars + comparison_labels,
+        (comparison_bars + comparison_labels).interactive(),
         theme="streamlit",
         width="stretch",
         height=290,
