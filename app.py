@@ -248,7 +248,7 @@ def render_overview(
             )
         elif default_dataset:
             st.markdown("Mô hình đã học chính dữ liệu này nên số trông đẹp hơn thực tế.")
-        if not default_dataset:
+        if not default_dataset and model_choice != MODE_LINEAR:
             st.markdown(
                 "Mô hình chỉ nhìn giờ, ngày, tháng nên với file tải lên, "
                 "đường dự đoán có thể lệch xa số thực; đây là hạn chế của bản demo."
