@@ -720,7 +720,7 @@ def render_blockchain() -> None:
     )
     check_column, download_column, clear_column, _ = st.columns([3, 3, 3, 2])
     with check_column:
-        check = st.button("Kiểm tra toàn vẹn", key="t3_check")
+        check = st.button("Kiểm tra toàn vẹn", key="t3_check", width="stretch")
     with download_column:
         st.download_button(
             "Tải Blockchain JSON",
@@ -730,9 +730,15 @@ def render_blockchain() -> None:
             file_name="blockchain.json",
             mime="application/json",
             key="t3_download",
+            width="stretch",
         )
     with clear_column:
-        if st.button("Xóa dữ liệu demo", key="t3_clear", disabled=not confirm_clear):
+        if st.button(
+            "Xóa dữ liệu demo",
+            key="t3_clear",
+            disabled=not confirm_clear,
+            width="stretch",
+        ):
             st.session_state["chain"] = ProofOfWorkChain(difficulty=LIVE_DIFFICULTY)
             st.session_state["prediction"] = None
             st.session_state["tamper"] = None
@@ -765,7 +771,7 @@ def render_blockchain() -> None:
         )
         tamper_column, undo_column, _ = st.columns([3, 3, 5])
         with tamper_column:
-            if st.button("Sửa trộm block này", key="t3_tamper"):
+            if st.button("Sửa trộm block này", key="t3_tamper", width="stretch"):
                 st.session_state["tamper"] = {
                     "index": target,
                     "value": float(value),
@@ -777,6 +783,7 @@ def render_blockchain() -> None:
                 "Hoàn tác sửa trộm",
                 key="t3_undo",
                 disabled=tamper is None,
+                width="stretch",
             ):
                 st.session_state["tamper"] = None
                 st.rerun()
