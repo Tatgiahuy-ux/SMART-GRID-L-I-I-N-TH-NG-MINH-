@@ -4,8 +4,9 @@
 # .streamlit/secrets.toml — file đó đã bị .gitignore chặn.
 #
 # Giao diện hướng "bảng điều khiển kỹ thuật": nền sáng, chữ đậm rõ, một màu nhấn nâu-cam,
-# bo góc nhỏ, không gradient/glow. Mọi màu sắc và kiểu chữ đặt ở đây (không nhúng
-# CSS trong app.py) để Streamlit áp dụng nhất quán cho mọi thành phần.
+# bo góc nhỏ, không gradient/glow. Mọi màu sắc và kiểu chữ đặt ở đây; app.py chỉ giữ một
+# khối CSS nhỏ cho những thứ config.toml không đặt được (nhịp dọc 8px, chữ số đều bề rộng,
+# nhãn nâu xám).
 
 [server]
 # Mục 8 – giới hạn dung lượng upload: 5 MB (mặc định của Streamlit là 200 MB).

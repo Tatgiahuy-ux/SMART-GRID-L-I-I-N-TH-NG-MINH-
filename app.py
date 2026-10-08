@@ -41,6 +41,22 @@ FORECAST_HOURS = 24
 LIVE_DIFFICULTY = 3
 CONSUMER_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,32}$")
 
+# CSS tối thiểu — chỉ những gì .streamlit/config.toml không đặt được.
+# Chọn theo thuộc tính ổn định (data-testid), không theo tên lớp tự sinh css-xxxx.
+BASE_CSS = """
+<style>
+  [data-testid="stMainBlockContainer"] { padding-top: 32px; padding-bottom: 64px; }
+  [data-testid="stVerticalBlock"] { gap: 16px; }
+  [data-testid="stAppViewContainer"] { font-variant-numeric: tabular-nums; }
+  [data-testid="stHeading"]:has(h3) { margin: 32px 0 8px; }
+  [data-testid="stMetricLabel"] { color: #756A61; }
+  [data-testid="stMetricLabel"] p, [data-testid="stWidgetLabel"] p { color: #756A61; font-size: 14px; }
+  @media (max-width: 640px) {
+    [data-testid="stTabs"] [role="tablist"] { flex-wrap: wrap; row-gap: 4px; overflow: visible; }
+  }
+</style>
+"""
+
 
 def render_header():
     st.title("Hệ thống giám sát và dự đoán phụ tải điện")
@@ -877,6 +893,7 @@ def main() -> None:
         layout="centered",
         initial_sidebar_state="collapsed",
     )
+    st.html(BASE_CSS)
     if "chain" not in st.session_state:
         st.session_state.setdefault("chain", ProofOfWorkChain(difficulty=LIVE_DIFFICULTY))
     st.session_state.setdefault("prediction", None)
