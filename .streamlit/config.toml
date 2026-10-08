@@ -82,6 +82,11 @@ redTextColor = "#7F1D1D"
 orangeColor = "#9A5B2E"
 orangeBackgroundColor = "#FAF6EE"
 orangeTextColor = "#7C2D12"
+# Cảnh báo (st.warning) dùng bộ màu "yellow" của Streamlit: đưa về tông nâu ấm trầm,
+# cùng cách xử lý với các thông báo khác (nền rất nhạt + thanh viền trái lấy theo màu chữ).
+yellowColor = "#9A5B2E"
+yellowBackgroundColor = "#FAF6EE"
+yellowTextColor = "#7C4A1E"
 # Không dùng màu xanh dương: họ "blue" của Streamlit (nền st.info, đường kẻ...) đưa về tông ấm.
 blueColor = "#9A5B2E"
 blueBackgroundColor = "#FAF6EE"
