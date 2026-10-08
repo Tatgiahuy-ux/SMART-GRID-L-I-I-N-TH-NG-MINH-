@@ -202,7 +202,11 @@ def render_overview(
             alt.Chart(chart_data)
             .mark_line()
             .encode(
-                x=alt.X("Thời gian:T", title=None),
+                x=alt.X(
+                    "Thời gian:T",
+                    title=None,
+                    axis=alt.Axis(tickCount="day"),
+                ),
                 y=alt.Y(
                     "Điện năng (kWh):Q",
                     title="Điện năng (kWh)",
@@ -735,6 +739,8 @@ def render_consensus(data: pd.DataFrame, forecast: ForecastResult) -> None:
             "Sức đào": [honest.cumulative_work, attacker.cumulative_work],
         }
     )
+    comparison_max = max(honest.cumulative_work, attacker.cumulative_work)
+    comparison_headroom = max(2, round(comparison_max * 0.15))
     comparison_bars = (
         alt.Chart(comparison_data)
         .mark_bar()
@@ -748,7 +754,10 @@ def render_consensus(data: pd.DataFrame, forecast: ForecastResult) -> None:
             y=alt.Y(
                 "Sức đào:Q",
                 title="Sức đào",
-                scale=alt.Scale(zero=True),
+                scale=alt.Scale(
+                    zero=True,
+                    domainMax=comparison_max + comparison_headroom,
+                ),
                 axis=alt.Axis(grid=True, tickMinStep=1),
             ),
             color=alt.Color(
