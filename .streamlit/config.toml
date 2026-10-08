@@ -71,19 +71,20 @@ linkUnderline = false
 # Màu biểu đồ: thực tế là xám đậm ấm, dự đoán dùng màu nhấn nâu-cam.
 chartCategoricalColors = ["#4A4038", "#9A5B2E", "#7A624F", "#B77945", "#6B5A4D", "#C08A5B"]
 
-# Màu ngữ nghĩa cho trạng thái hợp lệ / bị sửa / cảnh báo.
+# Màu ngữ nghĩa cho trạng thái hợp lệ / bị sửa / cảnh báo. Nền rất nhạt vì alert
+# được nhận diện bằng thanh viền trái 3px, không tô kín cả khối.
 greenColor = "#15803D"
-greenBackgroundColor = "#E8F5EE"
+greenBackgroundColor = "#F1F7F2"
 greenTextColor = "#14532D"
 redColor = "#B91C1C"
-redBackgroundColor = "#FDECEC"
+redBackgroundColor = "#FAF2F1"
 redTextColor = "#7F1D1D"
 orangeColor = "#9A5B2E"
-orangeBackgroundColor = "#FDF3E3"
+orangeBackgroundColor = "#FAF6EE"
 orangeTextColor = "#7C2D12"
 # Không dùng màu xanh dương: họ "blue" của Streamlit (nền st.info, đường kẻ...) đưa về tông ấm.
 blueColor = "#9A5B2E"
-blueBackgroundColor = "#FDF3E3"
+blueBackgroundColor = "#FAF6EE"
 blueTextColor = "#7C2D12"
 grayColor = "#756A61"
 

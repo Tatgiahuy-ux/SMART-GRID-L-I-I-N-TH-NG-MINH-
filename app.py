@@ -67,6 +67,50 @@ BASE_CSS = """
     border-radius: 3px;
     letter-spacing: 0.02em;
   }
+  /* Thông báo: nền rất nhạt, nhận diện bằng thanh viền trái 3px theo màu ngữ nghĩa. */
+  [data-testid="stAlertContainer"] {
+    border: 0;
+    border-left: 3px solid currentColor;
+    border-radius: 4px;
+    box-shadow: none;
+    padding: 12px 16px;
+  }
+  /* Nút chính tô nâu đặc; nút phụ chỉ còn viền. */
+  [data-testid="stBaseButton-primary"] {
+    background: #9A5B2E;
+    border-color: #9A5B2E;
+    color: #FFFFFF;
+  }
+  [data-testid="stBaseButton-primary"]:hover {
+    background: #7E4A23;
+    border-color: #7E4A23;
+    color: #FFFFFF;
+  }
+  [data-testid="stBaseButton-secondary"] {
+    background: transparent;
+    border: 1px solid #CFC5B6;
+    color: #3F3833;
+  }
+  [data-testid="stBaseButton-secondary"]:hover {
+    background: #F5F1E9;
+    border-color: #9A5B2E;
+    color: #7E4A23;
+  }
+  [data-testid="stBaseButton-primary"]:focus-visible,
+  [data-testid="stBaseButton-secondary"]:focus-visible {
+    outline: 2px solid rgba(154, 91, 46, 0.45);
+    outline-offset: 1px;
+  }
+  /* "Xóa dữ liệu demo" nhìn khác nhưng giữ sắc gạch trầm, không đỏ chói. */
+  .st-key-t3_clear button {
+    color: #8A4B32;
+    border-color: #D9C3B4;
+  }
+  .st-key-t3_clear button:hover {
+    background: #F6EDE6;
+    border-color: #B27A5C;
+    color: #7A3F28;
+  }
   @media (max-width: 640px) {
     [data-testid="stTabs"] [role="tablist"] { flex-wrap: wrap; row-gap: 4px; overflow: visible; }
   }
