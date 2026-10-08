@@ -331,7 +331,9 @@ def render_overview(
                     ),
                     legend=alt.Legend(
                         title=None,
-                        orient="top-right",
+                        orient="none",
+                        legendX={"expr": "width - 135"},
+                        legendY=-20,
                         direction="horizontal",
                     ),
                 ),
