@@ -189,7 +189,8 @@ def render_overview(
     if forecast.fitted is not None and len(forecast.fitted) == len(data):
         rows = int(saved.get("n_test", 144)) if forest_metrics else min(168, len(data))
         rows = min(rows, len(data))
-        st.subheader(f"Điện năng thực tế và dự đoán, {rows // 24} ngày cuối")
+        span = f"{rows} giờ cuối" if rows < 24 else f"{rows // 24} ngày cuối"
+        st.subheader(f"Điện năng thực tế và dự đoán, {span}")
         chart_data = pd.DataFrame(
             {
                 "Thời gian": data["timestamp"].tail(rows).to_numpy(),
@@ -247,6 +248,11 @@ def render_overview(
             )
         elif default_dataset:
             st.markdown("Mô hình đã học chính dữ liệu này nên số trông đẹp hơn thực tế.")
+        if not default_dataset:
+            st.markdown(
+                "Mô hình chỉ nhìn giờ, ngày, tháng nên với file tải lên, "
+                "đường dự đoán có thể lệch xa số thực; đây là hạn chế của bản demo."
+            )
 
     st.subheader("Dự báo 24 giờ tới")
     future_hours = [pd.Timestamp(value) for value in forecast.future_timestamps]
