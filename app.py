@@ -51,6 +51,21 @@ BASE_CSS = """
   [data-testid="stHeading"]:has(h3) { margin: 32px 0 8px; }
   [data-testid="stMetricLabel"] { color: #756A61; }
   [data-testid="stMetricLabel"] p, [data-testid="stWidgetLabel"] p { color: #756A61; font-size: 14px; }
+  /* Thẻ trong cùng một hàng cao bằng nhau (thẻ Genesis không thấp hơn thẻ khác). */
+  [data-testid="stColumn"] > [data-testid="stVerticalBlock"],
+  [data-testid="stColumn"] > [data-testid="stVerticalBlock"] > [data-testid="stLayoutWrapper"],
+  [data-testid="stColumn"] > [data-testid="stVerticalBlock"] > [data-testid="stLayoutWrapper"] > [data-testid="stVerticalBlock"] {
+    height: 100%;
+  }
+  /* Mã băm: chữ nhỏ nhưng thoáng, tách khỏi nền bằng sắc độ kem thay vì viền. */
+  [data-testid="stMarkdownContainer"] code {
+    font-size: 13px;
+    color: #4A4038;
+    background: #F2EDE4;
+    padding: 1px 5px;
+    border-radius: 3px;
+    letter-spacing: 0.02em;
+  }
   @media (max-width: 640px) {
     [data-testid="stTabs"] [role="tablist"] { flex-wrap: wrap; row-gap: 4px; overflow: visible; }
   }
