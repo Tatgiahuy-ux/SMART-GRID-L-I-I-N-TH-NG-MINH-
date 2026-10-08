@@ -245,7 +245,7 @@ def render_overview(
             st.markdown(
                 "Phương pháp đường thẳng chỉ nhìn các giờ trước đó để đoán giờ kế tiếp."
             )
-        else:
+        elif default_dataset:
             st.markdown("Mô hình đã học chính dữ liệu này nên số trông đẹp hơn thực tế.")
 
     st.subheader("Dự báo 24 giờ tới")
