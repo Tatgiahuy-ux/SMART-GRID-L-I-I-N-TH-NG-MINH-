@@ -79,6 +79,40 @@ def _short_hash(value: str, head: int = 10, tail: int = 6) -> str:
     return f"{value[:head]}…{value[-tail:]}"
 
 
+def _chart_style(chart: alt.Chart) -> alt.Chart:
+    """Một kiểu chung cho mọi biểu đồ: lưới mảnh, không viền khung, cỡ chữ trục 12px."""
+    return (
+        chart.configure_axis(
+            domain=False,
+            ticks=False,
+            labelFontSize=12,
+            titleFontSize=12,
+            labelColor="#6E635A",
+            titleColor="#6E635A",
+            labelPadding=6,
+            titlePadding=10,
+        )
+        .configure_axisX(grid=False)
+        .configure_axisY(grid=True, gridColor="#ECE5DA", gridWidth=0.6)
+        .configure_view(stroke=None)
+        .configure_legend(
+            labelFontSize=12,
+            labelColor="#6E635A",
+            symbolSize=60,
+            symbolStrokeWidth=2,
+            padding=0,
+            offset=6,
+        )
+    )
+
+
+# Nhãn ngày kiểu Việt Nam trên trục thời gian: "T2 26/01", chủ nhật là "CN".
+_DAY_LABEL_EXPR = (
+    "['CN','T2','T3','T4','T5','T6','T7'][day(datum.value)]"
+    " + ' ' + timeFormat(datum.value, '%d/%m')"
+)
+
+
 def _block_label(index: int) -> str:
     return "Genesis" if index == 0 else f"#{index}"
 
@@ -222,7 +256,7 @@ def render_overview(
                 x=alt.X(
                     "Thời gian:T",
                     title=None,
-                    axis=alt.Axis(tickCount="day"),
+                    axis=alt.Axis(tickCount="day", labelExpr=_DAY_LABEL_EXPR),
                 ),
                 y=alt.Y(
                     "Điện năng (kWh):Q",
@@ -235,13 +269,16 @@ def render_overview(
                         domain=series,
                         range=["#C08A5B", "#9A5B2E"],
                     ),
-                    legend=alt.Legend(title=None, orient="bottom"),
+                    legend=alt.Legend(
+                        title=None,
+                        orient="top-right",
+                        direction="horizontal",
+                    ),
                 ),
                 strokeWidth=alt.StrokeWidth(
                     "Chuỗi:N",
                     sort=series,
                     scale=alt.Scale(domain=series, range=[1.4, 2.4]),
-                    legend=None,
                 ),
                 tooltip=[
                     alt.Tooltip("Thời gian:T", title="Thời gian"),
@@ -252,7 +289,7 @@ def render_overview(
             .interactive()
         )
         st.altair_chart(
-            chart,
+            _chart_style(chart),
             height=340,
             alt="So sánh mức dùng điện thực tế và dự đoán theo giờ",
         )
@@ -277,14 +314,41 @@ def render_overview(
         f"Từ {future_hours[0].strftime('%d/%m %H:00')} "
         f"đến {future_hours[-1].strftime('%d/%m %H:00')}."
     )
-    st.bar_chart(
-        pd.DataFrame(
-            {"Điện năng (kWh)": predictions},
-            index=pd.to_datetime(forecast.future_timestamps),
-        ),
-        color="#9A5B2E",
-        y_label="Điện năng (kWh)",
+    future_chart = (
+        alt.Chart(
+            pd.DataFrame(
+                {
+                    "Thời gian": pd.to_datetime(forecast.future_timestamps),
+                    "Điện năng (kWh)": predictions,
+                }
+            )
+        )
+        .mark_bar(color="#9A5B2E")
+        .encode(
+            x=alt.X(
+                "Thời gian:T",
+                title=None,
+                axis=alt.Axis(
+                    format="%H:00",
+                    values=[hour.to_pydatetime() for hour in future_hours[::2]],
+                ),
+            ),
+            y=alt.Y(
+                "Điện năng (kWh):Q",
+                title="Điện năng (kWh)",
+                scale=alt.Scale(zero=True),
+            ),
+            tooltip=[
+                alt.Tooltip("Thời gian:T", title="Thời gian"),
+                alt.Tooltip("Điện năng (kWh):Q", format=".2f"),
+            ],
+        )
+        .interactive()
+    )
+    st.altair_chart(
+        _chart_style(future_chart),
         height=260,
+        alt="Dự báo điện năng 24 giờ tới",
     )
     peak_index = predictions.index(max(predictions))
     low_index = predictions.index(min(predictions))
@@ -794,15 +858,18 @@ def render_consensus(data: pd.DataFrame, forecast: ForecastResult) -> None:
     )
     comparison_labels = (
         alt.Chart(comparison_data)
-        .mark_text(dy=-8, baseline="bottom", fontSize=14)
+        .mark_text(dy=-8, baseline="bottom", fontSize=12)
         .encode(
             x=alt.X("Chuỗi:N", sort=comparison_series),
             y=alt.Y("Sức đào:Q"),
             text=alt.Text("Sức đào:Q"),
         )
     )
+    comparison_chart = (comparison_bars + comparison_labels).add_params(
+        alt.selection_interval(bind="scales", encodings=["y"])
+    )
     st.altair_chart(
-        (comparison_bars + comparison_labels).interactive(),
+        _chart_style(comparison_chart),
         theme="streamlit",
         width="stretch",
         height=290,
