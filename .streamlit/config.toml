@@ -64,7 +64,7 @@ font = "sans-serif"
 headingFont = "serif"
 baseFontSize = 17
 baseFontWeight = 400
-headingFontSizes = ["26px", "20px", "18px", "16px", "15px", "13px"]
+headingFontSizes = ["26px", "20px", "20px", "16px", "15px", "13px"]
 headingFontWeights = [700, 600, 600, 600, 600, 600]
 linkUnderline = false
 

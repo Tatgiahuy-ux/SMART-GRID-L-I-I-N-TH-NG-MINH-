@@ -46,7 +46,7 @@ CONSUMER_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,32}$")
 BASE_CSS = """
 <style>
   [data-testid="stMainBlockContainer"] { padding-top: 32px; padding-bottom: 64px; }
-  [data-testid="stVerticalBlock"] { gap: 16px; }
+  [data-testid="stVerticalBlock"] { gap: 18px; }
   [data-testid="stAppViewContainer"] { font-variant-numeric: tabular-nums; }
   [data-testid="stHeading"]:has(h3) { margin: 16px 0 8px; }
   [data-testid="stMetricLabel"] { color: #756A61; }
@@ -130,6 +130,15 @@ BASE_CSS = """
   }
   /* Chữ khi bôi chọn dùng tông nâu nhạt thay vì xanh mặc định của trình duyệt. */
   ::selection { background: #E8DCC8; color: #3F3833; }
+  /* Hướng dẫn demo: danh sách 6 bước gọn, dễ quét mắt trên máy chiếu. */
+  .st-key-t5_guide [data-testid="stMarkdownContainer"] ol { padding-left: 1.5rem; margin: 2px 0 0; }
+  .st-key-t5_guide [data-testid="stMarkdownContainer"] li { margin-bottom: 6px; line-height: 1.55; }
+  .st-key-t5_guide [data-testid="stMarkdownContainer"] li p { margin-bottom: 0; }
+  .st-key-t5_guide [data-testid="stMarkdownContainer"] ul li { margin-bottom: 4px; }
+  /* Thẻ kết quả đồng thuận: khít hơn cho cân đối (số vẫn to hơn chữ thường). */
+  .st-key-t4_card_honest, .st-key-t4_card_attacker { gap: 10px; }
+  .st-key-t4_card_honest [data-testid="stMetricValue"],
+  .st-key-t4_card_attacker [data-testid="stMetricValue"] { font-size: 30px; }
   /* Mẹo kéo ngang cho bảng rộng — chỉ hiện trên màn hình hẹp. */
   .chi-keo-ngang { display: none; color: #756A61; font-size: 14px; }
   /* Gói B: gọn khung tải CSV — ẩn dòng dung lượng tiếng Anh (dấu ? đã ghi "tối đa 5 MB")
@@ -176,13 +185,13 @@ def _short_hash(value: str, head: int = 10, tail: int = 6) -> str:
 
 
 def _chart_style(chart: alt.Chart) -> alt.Chart:
-    """Một kiểu chung cho mọi biểu đồ: lưới mảnh, không viền khung, cỡ chữ trục 12px."""
+    """Một kiểu chung cho mọi biểu đồ: lưới mảnh, không viền khung, cỡ chữ trục 14px."""
     return (
         chart.configure_axis(
             domain=False,
             ticks=False,
-            labelFontSize=12,
-            titleFontSize=12,
+            labelFontSize=14,
+            titleFontSize=14,
             labelColor="#6E635A",
             titleColor="#6E635A",
             labelPadding=6,
@@ -192,7 +201,7 @@ def _chart_style(chart: alt.Chart) -> alt.Chart:
         .configure_axisY(grid=True, gridColor="#ECE5DA", gridWidth=0.6)
         .configure_view(stroke=None)
         .configure_legend(
-            labelFontSize=12,
+            labelFontSize=14,
             labelColor="#6E635A",
             symbolSize=60,
             symbolStrokeWidth=2,
@@ -368,7 +377,7 @@ def render_overview(
                     legend=alt.Legend(
                         title=None,
                         orient="none",
-                        legendX={"expr": "width - 135"},
+                        legendX={"expr": "width - 150"},
                         legendY=-20,
                         direction="horizontal",
                     ),
@@ -963,7 +972,7 @@ def render_consensus(data: pd.DataFrame, forecast: ForecastResult) -> None:
                 "Chuỗi:N",
                 sort=comparison_series,
                 title=None,
-                axis=alt.Axis(labelAngle=0),
+                axis=alt.Axis(labelAngle=0, labelLimit=280),
             ),
             y=alt.Y(
                 "Sức đào:Q",
@@ -986,7 +995,7 @@ def render_consensus(data: pd.DataFrame, forecast: ForecastResult) -> None:
     )
     comparison_labels = (
         alt.Chart(comparison_data)
-        .mark_text(dy=-8, baseline="bottom", fontSize=12)
+        .mark_text(dy=-8, baseline="bottom", fontSize=14)
         .encode(
             x=alt.X("Chuỗi:N", sort=comparison_series),
             y=alt.Y("Sức đào:Q"),
@@ -1071,19 +1080,20 @@ def render_guide(saved: dict | None) -> None:
     metric_note = ""
     if saved and saved.get("mae") is not None:
         metric_note = f" Sai số trung bình mẫu là {saved['mae']:.2f} kWh."
-    st.markdown(
-        f"""1. **Tổng quan.** Đọc bốn con số và biểu đồ thực tế so với dự đoán.{metric_note}
+    with st.container(key="t5_guide"):
+        st.markdown(
+            f"""1. **Tổng quan.** Đọc bốn con số và biểu đồ thực tế so với dự đoán.{metric_note}
 2. **Dự đoán.** Chọn giờ rồi bấm Dự đoán để xem mức điện dự kiến.
 3. **Ghi dữ liệu.** Nhập số thực tế, bấm Ghi vào Blockchain. Lặp lại với 2 đến 3 giờ khác.
 4. **Thử sửa trộm.** Mở tab Blockchain, chọn block và nhập giá trị giả, bấm **Sửa trộm block này**; xem chuỗi báo đỏ rồi bấm **Hoàn tác sửa trộm** để trả lại như cũ.
 5. **So sức đào.** Chọn mức "Đào kịp bằng nút trung thực" rồi bấm **Chạy mô phỏng**; sau đó đổi sang "Đào nhanh hơn 1 khối" và bấm **Chạy mô phỏng** lần nữa để so kết quả.
 6. **Kết luận.** Dự đoán hỗ trợ theo dõi phụ tải; chuỗi khối cho biết số liệu đã bị sửa."""
-    )
-    st.subheader("Giới hạn của bản demo")
-    st.markdown(
-        "- Không coi mã băm hoặc Proof of Work là bảo mật tuyệt đối.\n"
-        "- Phần đào chạy trong một tiến trình, độ khó thấp và không có mạng ngang hàng."
-    )
+        )
+        st.subheader("Giới hạn của bản demo")
+        st.markdown(
+            "- Không coi mã băm hoặc Proof of Work là bảo mật tuyệt đối.\n"
+            "- Phần đào chạy trong một tiến trình, độ khó thấp và không có mạng ngang hàng."
+        )
 
 
 def main() -> None:
