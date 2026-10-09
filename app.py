@@ -119,6 +119,20 @@ BASE_CSS = """
   }
   /* Mẹo kéo ngang cho bảng rộng — chỉ hiện trên màn hình hẹp. */
   .chi-keo-ngang { display: none; color: #756A61; font-size: 14px; }
+  /* Gói B: gọn khung tải CSV — ẩn dòng dung lượng tiếng Anh (dấu ? đã ghi "tối đa 5 MB")
+     và đổi nhãn nút "Upload" thành "Tải lên". Chỉ nhắm đúng khung tải, không đụng nút khác. */
+  [data-testid="stFileUploaderDropzoneInstructions"] { display: none; }
+  [data-testid="stFileUploaderDropzone"] [data-testid="stMarkdownContainer"] p { font-size: 0; }
+  [data-testid="stFileUploaderDropzone"] [data-testid="stMarkdownContainer"] p::after {
+    content: "Tải lên";
+    font-size: 14px;
+  }
+  /* Gói B: ẩn thanh nút nổi tiếng Anh của biểu đồ (Show data/Download PNG/Fullscreen…)
+     khi rê chuột; giữ nguyên thanh của bảng dữ liệu (tìm kiếm/chọn cột vẫn cần). */
+  [data-testid="stElementContainer"]:has([data-testid="stVegaLiteChart"]) [data-testid="stElementToolbar"],
+  [data-testid="stFullScreenFrame"]:has([data-testid="stVegaLiteChart"]) + [data-testid="stElementToolbar"] {
+    display: none;
+  }
   @media (max-width: 640px) {
     [data-testid="stTabs"] [role="tablist"] { flex-wrap: wrap; row-gap: 4px; overflow: visible; }
     .chi-keo-ngang { display: block; }
