@@ -48,7 +48,7 @@ BASE_CSS = """
   [data-testid="stMainBlockContainer"] { padding-top: 32px; padding-bottom: 64px; }
   [data-testid="stVerticalBlock"] { gap: 16px; }
   [data-testid="stAppViewContainer"] { font-variant-numeric: tabular-nums; }
-  [data-testid="stHeading"]:has(h3) { margin: 32px 0 8px; }
+  [data-testid="stHeading"]:has(h3) { margin: 16px 0 8px; }
   [data-testid="stMetricLabel"] { color: #756A61; }
   [data-testid="stMetricLabel"] p, [data-testid="stWidgetLabel"] p { color: #756A61; font-size: 14px; }
   [data-testid="stMetricLabel"] p { white-space: normal; overflow: visible; text-overflow: clip; }
@@ -117,6 +117,19 @@ BASE_CSS = """
     border-color: #B27A5C;
     color: #7A3F28;
   }
+  /* Nút bị tắt đọc được hơn trên máy chiếu (mặc định Streamlit mờ còn ~2.5:1). */
+  [data-testid="stBaseButton-primary"]:disabled,
+  [data-testid="stBaseButton-secondary"]:disabled,
+  [data-testid="stBaseButton-primary"]:disabled p,
+  [data-testid="stBaseButton-secondary"]:disabled p {
+    color: rgba(28, 25, 23, 0.6) !important;
+  }
+  .st-key-t3_clear button:disabled {
+    color: rgba(138, 75, 50, 0.72) !important;
+    border-color: #D9C3B4 !important;
+  }
+  /* Chữ khi bôi chọn dùng tông nâu nhạt thay vì xanh mặc định của trình duyệt. */
+  ::selection { background: #E8DCC8; color: #3F3833; }
   /* Mẹo kéo ngang cho bảng rộng — chỉ hiện trên màn hình hẹp. */
   .chi-keo-ngang { display: none; color: #756A61; font-size: 14px; }
   /* Gói B: gọn khung tải CSV — ẩn dòng dung lượng tiếng Anh (dấu ? đã ghi "tối đa 5 MB")
@@ -529,22 +542,22 @@ def render_prediction(forecast: ForecastResult) -> None:
         consumer_id = st.text_input(
             "Mã đồng hồ / người dùng", value=DEFAULT_CONSUMER_ID, key="t2_consumer_id"
         )
+    with right:
         hour_iso = st.selectbox(
             "Giờ cần dự đoán",
             forecast.future_timestamps,
             format_func=_display_hour,
             key="t2_hour",
         )
-    with right:
-        actual = st.number_input(
-            "Mức tiêu thụ thực tế (kWh)",
-            min_value=0.0,
-            max_value=1000.0,
-            value=0.0,
-            step=0.1,
-            key="t2_actual",
-            help="Số đọc từ đồng hồ điện. Nhập giả lập cho buổi demo.",
-        )
+    actual = st.number_input(
+        "Mức tiêu thụ thực tế (kWh)",
+        min_value=0.0,
+        max_value=1000.0,
+        value=0.0,
+        step=0.1,
+        key="t2_actual",
+        help="Số đọc từ đồng hồ điện. Nhập giả lập cho buổi demo.",
+    )
 
     st.markdown(
         "**Bước 1:** bấm Dự đoán. **Bước 2:** nhập số thực tế rồi bấm Ghi vào Blockchain."

@@ -12,7 +12,9 @@ Blockchain chống giả mạo*.
    đồng thuận *chuỗi nặng nhất thắng*, mô phỏng cả kịch bản kẻ tấn công đào lại (tấn công 51%).
 
 Giao diện theo hướng *bảng điều khiển kỹ thuật*: nền sáng, chữ rõ, bo góc nhỏ, không gradient/glow.
-Toàn bộ màu sắc và kiểu chữ nằm trong `.streamlit/config.toml` (không nhúng CSS trong `app.py`).
+Màu sắc và kiểu chữ đặt trong `.streamlit/config.toml`; `app.py` chỉ giữ một khối CSS nhỏ cho những
+thứ config.toml không đặt được (nhãn nâu xám, chip mã băm, nút bị tắt đọc được hơn, chú thích kéo
+ngang trên màn hình hẹp).
 
 ## Chạy nhanh bằng một lệnh (khuyên dùng khi demo)
 
@@ -149,3 +151,6 @@ Cả ba file gốc được lưu nguyên trạng trong `team-deliverables/` đ�
   các con số này là kết quả thật, không phải số nhập tay.
 - Đây là demo giáo dục: hash phát hiện sửa đổi, PoW + đồng thuận chỉ chống sửa đổi khi kẻ tấn công
   **không** nắm đa số năng lực đào. Không trình bày là bảo mật tuyệt đối.
+- Quy ước hiển thị số (giữ thống nhất toàn app, không đổi định dạng): dấu chấm cho phần thập phân
+  (`0.20`, `0.973`) và dấu phẩy ngăn cách hàng nghìn (`12,898`) — chủ ý để khớp số liệu trong
+  báo cáo/slide, không phải lỗi định dạng.
