@@ -117,8 +117,11 @@ BASE_CSS = """
     border-color: #B27A5C;
     color: #7A3F28;
   }
+  /* Mẹo kéo ngang cho bảng rộng — chỉ hiện trên màn hình hẹp. */
+  .chi-keo-ngang { display: none; color: #756A61; font-size: 14px; }
   @media (max-width: 640px) {
     [data-testid="stTabs"] [role="tablist"] { flex-wrap: wrap; row-gap: 4px; overflow: visible; }
+    .chi-keo-ngang { display: block; }
   }
 </style>
 """
@@ -475,6 +478,10 @@ def render_overview(
                 },
                 alt="So sánh hai cách dự đoán trên cùng dữ liệu kiểm tra",
             )
+            st.markdown(
+                '<div class="chi-keo-ngang">Mẹo: kéo ngang bảng để xem đủ cột.</div>',
+                unsafe_allow_html=True,
+            )
             st.markdown("Số nhỏ hơn nghĩa là dự đoán gần số điện thật hơn.")
             if comparison["Độ khớp (R²)"].lt(0).any():
                 st.markdown(
@@ -485,6 +492,10 @@ def render_overview(
         "Xem dữ liệu huấn luyện", expanded=False, key="t1_training_data"
     ):
         st.dataframe(data, hide_index=True, alt="Dữ liệu điện đã làm sạch")
+        st.markdown(
+            '<div class="chi-keo-ngang">Mẹo: kéo ngang bảng để xem đủ cột.</div>',
+            unsafe_allow_html=True,
+        )
         st.download_button(
             "Tải dữ liệu đã làm sạch",
             data.to_csv(index=False).encode("utf-8"),
@@ -657,7 +668,7 @@ def _render_chain_cards(chain: ProofOfWorkChain) -> None:
             if position >= total:
                 continue
             block = chain.blocks[position]
-            title = "Genesis" if block.index == 0 else f"Block #{block.index}"
+            title = "Genesis (khối khởi tạo)" if block.index == 0 else f"Block #{block.index}"
             with column, st.container(border=True):
                 st.markdown(f"**{title}**")
                 if block.index != 0:
@@ -685,9 +696,12 @@ def render_blockchain() -> None:
         f"Độ khó {shown.difficulty}: mã băm phải bắt đầu bằng {'0' * shown.difficulty}."
     )
     if shown.is_valid():
-        st.success(
-            f"Chuỗi hợp lệ: {len(shown.blocks)} block, mã băm khớp nội dung và nối đúng nhau."
-        )
+        if len(shown.blocks) == 1:
+            st.success("Chuỗi hợp lệ: mới có block khởi tạo, chưa có bản ghi nào.")
+        else:
+            st.success(
+                f"Chuỗi hợp lệ: {len(shown.blocks)} block, mã băm khớp nội dung và nối đúng nhau."
+            )
     else:
         st.error(f"Phát hiện dữ liệu bị sửa: {shown.validation_error()}")
     if tamper is not None:
@@ -789,6 +803,10 @@ def render_blockchain() -> None:
                 st.rerun()
 
     with st.expander("Chi tiết từng block", key="t3_details"):
+        st.markdown(
+            "Các tên tiếng Anh như `consumer_id`, `actual_usage_kwh` là tên kỹ thuật "
+            "của dữ liệu được lưu trong block."
+        )
         for block in shown.blocks:
             st.markdown(
                 "**Block khởi tạo (Genesis)**" if block.index == 0 else f"**Block #{block.index}**"
@@ -835,9 +853,13 @@ def render_chain_card(
 
 def render_consensus(data: pd.DataFrame, forecast: ForecastResult) -> None:
     st.write(
-        "Kẻ tấn công sửa số điện của một block rồi đào lại cả chuỗi để mã băm khớp trở lại. "
-        "Chỉ kiểm tra mã băm là chưa đủ. Các nút phải so sánh sức đào của hai chuỗi và "
-        "chọn chuỗi nặng hơn."
+        "Kẻ tấn công sửa số điện của một block rồi đào lại cho mã băm khớp trở lại. "
+        "Vì vậy các nút không chỉ kiểm tra mã băm mà còn so sánh sức đào của hai chuỗi "
+        "để chọn chuỗi “nặng” hơn."
+    )
+    st.markdown(
+        "**Sức đào là gì?** Lượng tính toán máy đã bỏ ra để đào một chuỗi; "
+        "chuỗi tốn nhiều công hơn sẽ được các nút chọn."
     )
     difficulty = st.select_slider(
         "Độ khó (số số 0 đầu mã băm)",
@@ -1026,8 +1048,8 @@ def render_guide(saved: dict | None) -> None:
         f"""1. **Tổng quan.** Đọc bốn con số và biểu đồ thực tế so với dự đoán.{metric_note}
 2. **Dự đoán.** Chọn giờ rồi bấm Dự đoán để xem mức điện dự kiến.
 3. **Ghi dữ liệu.** Nhập số thực tế, bấm Ghi vào Blockchain. Lặp lại với 2 đến 3 giờ khác.
-4. **Thử sửa trộm.** Mở tab Blockchain, sửa một block, kiểm tra rồi hoàn tác.
-5. **So sức đào.** Chạy mức Đào kịp, sau đó chọn Đào nhanh hơn 1 khối.
+4. **Thử sửa trộm.** Mở tab Blockchain, chọn block và nhập giá trị giả, bấm **Sửa trộm block này**; xem chuỗi báo đỏ rồi bấm **Hoàn tác sửa trộm** để trả lại như cũ.
+5. **So sức đào.** Chọn mức "Đào kịp bằng nút trung thực" rồi bấm **Chạy mô phỏng**; sau đó đổi sang "Đào nhanh hơn 1 khối" và bấm **Chạy mô phỏng** lần nữa để so kết quả.
 6. **Kết luận.** Dự đoán hỗ trợ theo dõi phụ tải; chuỗi khối cho biết số liệu đã bị sửa."""
     )
     st.subheader("Giới hạn của bản demo")
@@ -1083,7 +1105,10 @@ def main() -> None:
         data = load_input_data(uploaded_file, dataset_label)
         forecast = run_forecast(data, FORECAST_HOURS, model_choice)
     except (OSError, ValueError, RuntimeError, pd.errors.ParserError) as exc:
-        st.error(safe_error(exc, "Không thể xử lý dữ liệu đầu vào."))
+        message = safe_error(exc, "Không thể xử lý dữ liệu đầu vào.")
+        if "Thiếu cột" in message:
+            message += " Hãy chọn file khác có đủ hai cột để tiếp tục."
+        st.error(message)
         st.stop()
 
     source_label = (
